@@ -71,6 +71,7 @@ map_set (Map *map, void *key, void *value)
       return;
     }
     if (!node->next) break;
+    node = node->next;
   };
   // Key does not exist
   // 'node' should be the last Node in the stack

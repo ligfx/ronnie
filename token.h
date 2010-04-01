@@ -12,7 +12,8 @@
 typedef enum {
     TOKEN_INTEGER,
     TOKEN_STRING,
-    TOKEN_SYMBOL
+    TOKEN_SYMBOL,
+    TOKEN_EOI
 } TokenType;
 
 typedef struct {
@@ -27,6 +28,8 @@ typedef struct {
 CaosToken token_int_new (int);
 CaosToken token_string_new (char*);
 CaosToken token_symbol_new (char*);
+CaosToken token_eoi();
+CaosToken token_null();
 
 TokenType token_get_type (CaosToken);
 

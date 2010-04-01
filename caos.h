@@ -40,6 +40,17 @@ void caos_register_binomial_function
 
 CaosContext* caos_context_new(CaosRuntime*);
 
+CaosToken caos_jump_to_next_symbol_matching (CaosContext*, ...);
+
+void caos_stack_push (CaosContext*, int);
+int caos_stack_pop (CaosContext*);
+int caos_stack_peek (CaosContext*);
+
+int caos_mark (CaosContext*);
+void caos_jump (CaosContext*, int);
+
+bool caos_done (CaosContext*);
+
 int caos_next_int (CaosContext*);
 char* caos_next_string (CaosContext*);
 

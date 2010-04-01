@@ -3,6 +3,7 @@
 
 #include "caos.h"
 #include "map.h"
+#include "intstack.h"
 
 typedef struct FunctionRef {
   caos_command_t command;
@@ -19,6 +20,7 @@ struct CaosContext {
   char *error;
   CaosToken *script;
   CaosToken *ip;
+  IntStack stack;
 };
 
 CaosRuntime* caos_get_runtime (CaosContext*);
@@ -31,6 +33,9 @@ FunctionRef caos_next_binomial_function (CaosContext*, char *base);
 
 FunctionRef caos_lookup_function_with_label (CaosContext*, char *label);
 FunctionRef caos_next_function (CaosContext*);
+
+void caos_rewind_once (CaosContext*);
+CaosToken caos_jump_to_next_symbol (CaosContext*);
 
 caos_command_t caos_next_command (CaosContext*);
 

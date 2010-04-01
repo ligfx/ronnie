@@ -13,7 +13,7 @@ bool string_equal (char **left, char **right) {
 int main () {
 
   Map m;
-  map_init (&m, sizeof(char*), sizeof(char*), (equals_t)string_equal);
+  map_init (&m, sizeof(char*), sizeof(char*), (map_equals_t)string_equal);
 
   char *k = "test";
   char *v = "blam";
@@ -34,6 +34,9 @@ int main () {
   map_set (&m, &k, &v);
 
   printf ("Name: %s\n", *(char**)map_get (&m, &k));
+
+  k = "another";
+  map_set (&m, &k, &v);
 
   map_destroy (&m);
 }

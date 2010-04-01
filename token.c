@@ -27,6 +27,18 @@ CaosToken token_symbol_new (char *s)
   return t;
 }
 
+CaosToken token_eoi()
+{
+  CaosToken t = { TOKEN_EOI };
+  return t;
+}
+
+CaosToken token_null()
+{
+  CaosToken t;
+  return t;
+}
+
 /*
    Type-checking
 */

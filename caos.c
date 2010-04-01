@@ -3,6 +3,7 @@
 #include "map.h"
 
 #include <assert.h>
+#include <stdarg.h>
 #include <string.h>
 
 bool
@@ -121,6 +122,8 @@ caos_context_new (CaosRuntime *runtime) {
     
     context->script = NULL;
     context->ip = NULL;
+
+    intstack_init (&context->stack);
   }
   return context;
 }
@@ -132,9 +135,43 @@ caos_set_script (CaosContext *context, CaosToken script[])
   context->ip = script;
 }
 
+int
+caos_mark (CaosContext *context)
+{
+  return context->ip - context->script;
+}
+
+void
+caos_jump (CaosContext *context, int mark)
+{
+  context->ip = context->script + mark;
+}
+
+void
+caos_stack_push (CaosContext *context, int i)
+{
+  intstack_push (&context->stack, i);
+}
+
+int
+caos_stack_pop (CaosContext *context)
+{
+  return intstack_pop (&context->stack);
+}
+
+int
+caos_stack_peek (CaosContext *context)
+{
+  return intstack_peek (&context->stack);
+}
+
 CaosToken
 caos_next_token (CaosContext *context)
 {
+  if (caos_done (context)) {
+    caos_set_error (context, "Expected token, got EOI");
+    return token_null();
+  }
   return *context->ip++;
 }
 
@@ -149,6 +186,60 @@ char*
 caos_get_error (CaosContext *context)
 {
   return context->error;
+}
+
+bool
+caos_done (CaosContext *context)
+{
+  return context->error || (context->ip->type == TOKEN_EOI);
+}
+
+void caos_rewind_once (CaosContext *context)
+{
+  context->ip--;
+}
+
+CaosToken caos_jump_to_next_symbol (CaosContext *context)
+{
+  CaosToken next;
+  do {
+    next = caos_next_token (context);
+    if (caos_get_error (context)) return token_null();
+  } while (token_get_type (next) != TOKEN_SYMBOL);
+
+  return next;
+}
+
+CaosToken
+caos_jump_to_next_symbol_matching (CaosContext *context, ...)
+{
+  char *strings[5] = { 0, 0, 0, 0, 0 };
+  // TODO: Can't figure out how to declare an array of pointers
+
+  {
+    va_list args;
+    int size = 0;
+    char *s;
+    va_start (args, context);
+    while ((s = va_arg (args, char*))) {
+      strings[size++] = s;
+      if (size > sizeof(strings) / sizeof(*strings) - 1) abort();
+    }
+    va_end (args);
+  }
+
+  while (true) {
+    CaosToken sym = caos_jump_to_next_symbol(context);
+    if (caos_get_error (context)) return token_null();
+    char *str = token_as_string (sym);
+
+    for (char **s = strings; *s; s++)
+      if (strcmp (str, *s) == 0)
+      {
+        caos_rewind_once (context);
+        return sym;
+      }
+  }
 }
 
 FunctionRef
