@@ -1,23 +1,16 @@
 #ifndef CAOS_TOKEN_H
 #define CAOS_TOKEN_H
 
-/*
-   Structs
-*/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "type.h"
 
 #include <stdbool.h>
 
-//#include "value.h"
-
-typedef enum {
-    TOKEN_INTEGER,
-    TOKEN_STRING,
-    TOKEN_SYMBOL,
-    TOKEN_EOI
-} TokenType;
-
 typedef struct {
-  TokenType type;
+  CaosType type;
   union {
     int i;
     char *s;
@@ -31,12 +24,15 @@ CaosToken token_symbol_new (char*);
 CaosToken token_eoi();
 CaosToken token_null();
 
-TokenType token_get_type (CaosToken);
+CaosType token_get_type (CaosToken);
+bool token_is_type (CaosToken, CaosType);
 
 char* token_as_string (CaosToken);
 int token_as_int (CaosToken);
 char* token_as_symbol (CaosToken);
 
-// CaosValue token_as_value (CaosToken);
+#ifdef __cplusplus
+}
+#endif
 
 #endif // CAOS_TOKEN_H

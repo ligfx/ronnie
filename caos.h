@@ -2,35 +2,18 @@
 #define CAOS_H
 
 #include "token.h"
+#include "type.h"
+#include "value.h"
 
-typedef enum CaosType {
-  CAOS_STRING,
-  CAOS_INT,
-} CaosType;
-
-typedef struct CaosValue {
-  CaosType type;
-  union {
-    int i;
-    char *s;
-  } value;
-} CaosValue;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct CaosRuntime CaosRuntime;
 typedef struct CaosContext CaosContext;
 
 typedef void (*caos_command_t) (CaosContext*);
 typedef CaosValue (*caos_expression_t) (CaosContext*);
-
-CaosValue caos_value_int_new (int);
-CaosValue caos_value_string_new (char*);
-CaosValue caos_value_null ();
-
-bool caos_value_is_integer (CaosValue);
-bool caos_value_is_string (CaosValue);
-
-int caos_value_as_integer (CaosValue);
-char* caos_value_as_string (CaosValue);
 
 CaosRuntime* caos_runtime_new();
 void caos_register_function
@@ -40,7 +23,7 @@ void caos_register_binomial_function
 
 CaosContext* caos_context_new(CaosRuntime*);
 
-CaosToken caos_jump_to_next_symbol_matching (CaosContext*, ...);
+CaosToken caos_fast_forward (CaosContext*, ...);
 
 void caos_stack_push (CaosContext*, int);
 int caos_stack_pop (CaosContext*);
@@ -51,13 +34,18 @@ void caos_jump (CaosContext*, int);
 
 bool caos_done (CaosContext*);
 
-int caos_next_int (CaosContext*);
-char* caos_next_string (CaosContext*);
+CaosValue caos_arg_value (CaosContext*);
+int caos_arg_int (CaosContext*);
+char* caos_arg_string (CaosContext*);
 
 char* caos_get_error (CaosContext*);
 
 void caos_set_script (CaosContext*, CaosToken[]);
 
 void caos_tick (CaosContext*);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // CAOS_H

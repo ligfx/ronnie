@@ -11,7 +11,8 @@ void c_bam (CaosContext *context)
 
 void c_outs (CaosContext *context)
 {
-  char *string = caos_next_string (context);
+  char *string = caos_arg_string (context);
+  if (caos_get_error (context)) return;
 
   printf ("%s\n", string);
 }
@@ -19,13 +20,13 @@ void c_outs (CaosContext *context)
 void c_new_simp (CaosContext *context)
 {
 
-  int family = caos_next_int (context);
-  int genus = caos_next_int (context);
-  int species = caos_next_int (context);
-  char *spritefile = caos_next_string (context);
-  int image_count = caos_next_int (context);
-  int first_image = caos_next_int (context);
-  int plane = caos_next_int (context);
+  int family = caos_arg_int (context),
+      genus = caos_arg_int (context),
+      species = caos_arg_int (context);
+  char* spritefile = caos_arg_string (context);
+  int image_count = caos_arg_int (context),
+      first_image = caos_arg_int (context),
+      plane = caos_arg_int (context);
   if (caos_get_error (context)) return;
 
   printf ("new: simp %i %i %i \"%s\" %i %i %i\n",
@@ -35,8 +36,8 @@ void c_new_simp (CaosContext *context)
 
 CaosValue c_rand (CaosContext *context)
 {
-  int left = caos_next_int (context);
-  int right = caos_next_int (context);
+  int left = caos_arg_int (context);
+  int right = caos_arg_int (context);
   if (caos_get_error (context)) return caos_value_null();
 
   int result = rand() % (right - left) + left;
@@ -46,7 +47,7 @@ CaosValue c_rand (CaosContext *context)
 void
 c_reps (CaosContext *context) {
   // Stack []
-  int loops_left = caos_next_int (context);
+  int loops_left = caos_arg_int (context);
   if (caos_get_error (context)) return;
   
   caos_stack_push (context, caos_mark (context));
@@ -72,12 +73,12 @@ c_repe (CaosContext *context) {
 void
 c_doif (CaosContext *context) {
   // Stack []
- // bool match = caos_next_condition (context);
+ // bool match = caos_arg_condition (context);
 
 //  caos_stack_push (context, match);
   caos_stack_push (context, 0);
 //  if (!match)
-    caos_jump_to_next_symbol_matching (context, "elif", "else", "endi", 0);
+    caos_fast_forward (context, "elif", "else", "endi", 0);
   // Stack [already_matched]
 }
 
@@ -85,9 +86,9 @@ void
 c_elif (CaosContext *context) {
   // Stack [already_matched]
   if (caos_stack_peek (context) == true // already matched
-  // || caos_next_condition (context) == false // didn't match this time
+  // || caos_arg_condition (context) == false // didn't match this time
   ) {
-    caos_jump_to_next_symbol_matching (context, "elif", "else", "endi", 0);
+    caos_fast_forward (context, "elif", "else", "endi", 0);
     return;
   }
 
@@ -101,7 +102,7 @@ c_else (CaosContext *context) {
   // Stack [already_matched]
 
   if (caos_stack_peek (context) == true) {
-    caos_jump_to_next_symbol_matching (context, "endi", 0);
+    caos_fast_forward (context, "endi", 0);
   }
 
   // Stack [already_matched]
@@ -111,7 +112,7 @@ void
 c_endi (CaosContext *context) {
   // Stack [already_matched]
 
-  caos_stack_pop (context);
+  (void) caos_stack_pop (context);
 
   // Stack []
 }

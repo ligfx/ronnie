@@ -11,31 +11,31 @@
 
 CaosToken token_int_new (int i)
 {
-  CaosToken t = { TOKEN_INTEGER, .value.i = i };
+  CaosToken t = { CAOS_INT, .value.i = i };
   return t;
 }
 
 CaosToken token_string_new (char *s)
 {
-  CaosToken t = { TOKEN_STRING, .value.s = s };
+  CaosToken t = { CAOS_STRING, .value.s = s };
   return t;
 }
 
 CaosToken token_symbol_new (char *s)
 {
-  CaosToken t = { TOKEN_SYMBOL, .value.s = s };
+  CaosToken t = { CAOS_SYMBOL, .value.s = s };
   return t;
 }
 
 CaosToken token_eoi()
 {
-  CaosToken t = { TOKEN_EOI };
+  CaosToken t = { CAOS_EOI };
   return t;
 }
 
 CaosToken token_null()
 {
-  CaosToken t;
+  static CaosToken t;
   return t;
 }
 
@@ -43,9 +43,14 @@ CaosToken token_null()
    Type-checking
 */
 
-TokenType token_get_type (CaosToken t)
+CaosType token_get_type (CaosToken t)
 {
   return t.type;
+}
+
+bool token_is_type (CaosToken t, CaosType y)
+{
+  return token_get_type (t) == y;
 }
 
 /*

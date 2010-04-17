@@ -2,8 +2,10 @@
 #define CAOS_PRIVATE_H
 
 #include "caos.h"
-#include "map.h"
-#include "intstack.h"
+
+#include <map>
+#include <stack>
+
 
 typedef struct FunctionRef {
   caos_command_t command;
@@ -11,8 +13,8 @@ typedef struct FunctionRef {
 } FunctionRef;
 
 struct CaosRuntime {
-  Map functions;
-  Map binomial_functions;
+  std::map <char*, FunctionRef> functions;
+  std::map <char*, std::map <char*, FunctionRef> > binomials;
 };
 
 struct CaosContext {
@@ -20,26 +22,21 @@ struct CaosContext {
   char *error;
   CaosToken *script;
   CaosToken *ip;
-  IntStack stack;
+  std::stack<int> *stack;
 };
 
 CaosRuntime* caos_get_runtime (CaosContext*);
 
-CaosToken caos_next_token (CaosContext*);
+CaosToken caos_get_token (CaosContext*);
+
+void caos_advance (CaosContext*);
+void caos_advance_to_next_symbol (CaosContext*);
 
 void caos_set_error (CaosContext*, char*);
 
-FunctionRef caos_next_binomial_function (CaosContext*, char *base);
-
-FunctionRef caos_lookup_function_with_label (CaosContext*, char *label);
-FunctionRef caos_next_function (CaosContext*);
-
-void caos_rewind_once (CaosContext*);
-CaosToken caos_jump_to_next_symbol (CaosContext*);
-
-caos_command_t caos_next_command (CaosContext*);
-
-caos_expression_t caos_lookup_expression_with_label (CaosContext*, char *label);
-caos_expression_t caos_next_expression (CaosContext*);
+char* caos_get_token_symbol (CaosContext*);
+FunctionRef caos_get_function (CaosContext*);
+caos_command_t caos_get_command (CaosContext*);
+caos_expression_t caos_get_expression (CaosContext*);
 
 #endif // CAOS_PRIVATE_H
