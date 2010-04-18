@@ -48,9 +48,9 @@ CaosType token_get_type (CaosToken t)
   return t.type;
 }
 
-bool token_is_type (CaosToken t, CaosType y)
+bool token_is_symbol (CaosToken t)
 {
-  return token_get_type (t) == y;
+  return token_get_type (t) == CAOS_SYMBOL;
 }
 
 /*

@@ -148,11 +148,11 @@ caos_next_condition (CaosContext *context) {
     CaosToken tok = caos_next_symbol (context);
     if (caos_get_error (context)) return false;
     
-    while (!intstack_empty (ops) && streq (token_as_string(tok), "and")) {
-      CaosValue right = valuestack_pop (stack);
-      CaosValue left = valuestack_pop (stack);
+    while (!ops.empty() && streq (token_as_string(tok), "and")) {
+      CaosValue right = stack.top(); stack.pop();
+      CaosValue left = stack.top(); stack.pop();
 
-      int op = intstack_pop (ops);
+      int op = ops.top(); ops.pop();
       CaosValue result;
       switch (op) {
         case CAOS_CONDITION_AND:

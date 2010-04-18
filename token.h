@@ -25,7 +25,8 @@ CaosToken token_eoi();
 CaosToken token_null();
 
 CaosType token_get_type (CaosToken);
-bool token_is_type (CaosToken, CaosType);
+
+bool token_is_symbol (CaosToken);
 
 char* token_as_string (CaosToken);
 int token_as_int (CaosToken);

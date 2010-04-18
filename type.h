@@ -8,6 +8,7 @@ extern "C" {
 typedef enum CaosType {
   CAOS_STRING,
   CAOS_INT,
+  CAOS_BOOL,
   CAOS_SYMBOL,
   CAOS_EOI
 } CaosType;

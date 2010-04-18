@@ -16,6 +16,8 @@ caos_runtime_new() {
   CaosRuntime *runtime = (CaosRuntime*) malloc (sizeof (*runtime)); {
     runtime->functions = std::map <char*, FunctionRef>();
     runtime->binomials = std::map <char*, std::map <char*, FunctionRef> >();
+    runtime->conditions_precedence = std::map <char*, int>();
+    runtime->conditions = std::map <char*, caos_condition_t>();
   }
 
   return runtime;
@@ -46,6 +48,19 @@ caos_register_binomial_function (
   // TODO: Error if base already registered as function
   // TODO: Error if label already registered
   runtime->binomials [base] [label] = f;
+}
+
+void
+caos_register_condition (
+  CaosRuntime *runtime,
+  int precedence,
+  char *label,
+  caos_condition_t func
+) {
+
+  // TODO: Error if label already registered as condition
+  runtime->conditions_precedence [label] = precedence;
+  runtime->conditions [label] = func;
 }
 
 CaosContext*
@@ -175,8 +190,6 @@ caos_arg_value (CaosContext *context)
   CaosValue ret = caos_value_null();
   caos_expression_t expr = NULL;
 
-  bool advanced = false;
-
   CaosToken token = caos_get_token (context);
   if (caos_get_error (context)) return ret;
 
@@ -190,7 +203,6 @@ caos_arg_value (CaosContext *context)
       break;
     case CAOS_SYMBOL:
       expr = caos_get_expression (context);
-      caos_advance (context); advanced = true;
       if (expr)
         ret = expr (context);
       else {
@@ -202,8 +214,66 @@ caos_arg_value (CaosContext *context)
       ERROR ("Cannot convert token into value");
   }
 
-  if (!advanced) caos_advance(context);
+  // caos_get_expression () advanced already
+  if (!expr) caos_advance(context);
   return ret;
+}
+
+bool
+caos_arg_bool (CaosContext *context)
+{
+  CaosRuntime *rt = context->runtime;
+
+  // Shunting yard
+
+  std::stack <CaosValue> stack;
+  std::stack <char*> ops;
+
+  stack.push (caos_arg_value (context));
+
+  while (true)
+  {
+    char *sym = caos_arg_symbol (context);
+    if (caos_get_error (context)) return false;
+
+    printf ("Condition: %s\n", sym);
+    if (!rt->conditions_precedence.count (sym)) {
+      ERROR ("No such condition");
+      return false;
+    }
+    int precedence = rt->conditions_precedence [sym];
+    
+    while (!ops.empty() && rt->conditions_precedence [ops.top()] <= precedence) {
+      CaosValue right = stack.top(); stack.pop();
+      CaosValue left = stack.top(); stack.pop();
+
+      char *op = ops.top(); ops.pop();
+      stack.push (caos_value_bool_new (rt->conditions [op] (left, right)));
+    }
+    ops.push (sym);
+
+    stack.push (caos_arg_value (context));
+    if (caos_get_error (context)) return false;
+
+    // while
+    {
+      CaosToken next = caos_get_token (context);
+      if (!token_is_symbol (next)) break;
+      if (!rt->conditions_precedence.count (token_as_symbol (next))) break;
+    }
+  }
+
+  while (!ops.empty()) {
+    CaosValue right = stack.top(); stack.pop();
+    CaosValue left = stack.top(); stack.pop();
+
+    char *op = ops.top(); ops.pop();
+    stack.push (caos_value_bool_new (rt->conditions [op] (left, right)));
+  }
+
+  assert (stack.size() == 1);
+  assert (caos_value_is_bool (stack.top()));
+  return caos_value_as_bool (stack.top());
 }
 
 int
@@ -215,6 +285,7 @@ caos_arg_int (CaosContext *context)
     return -42;
   }
 
+  printf ("[DEBUG] Int '%i'\n", caos_value_as_integer (next));
   return caos_value_as_integer (next);
 }
 
@@ -227,14 +298,16 @@ caos_arg_string (CaosContext *context)
     return NULL;
   }
 
+  printf ("[DEBUG] String '%s'\n", caos_value_as_string (next));
   return caos_value_as_string (next);
 }
 
 char*
-caos_get_token_symbol (CaosContext *context)
+caos_arg_symbol (CaosContext *context)
 {
   CaosToken tok = caos_get_token (context);
-  if (!token_is_type (tok, CAOS_SYMBOL)) return NULL;
+  caos_advance (context);
+  if (!token_is_symbol (tok)) return NULL;
   return token_as_string (tok);
 }
 
@@ -245,7 +318,7 @@ caos_get_function (CaosContext *context)
   CaosToken tok;
   char *label;
 
-  label = caos_get_token_symbol (context);
+  label = caos_arg_symbol (context);
   if (!label) return null_func;
   printf ("[DEBUG] Function '%s'\n", label);
 
@@ -263,8 +336,7 @@ caos_get_function (CaosContext *context)
       std::map<char*, FunctionRef> &second
         = binomials [label];
 
-      caos_advance (context);
-      label = caos_get_token_symbol (context);
+      label = caos_arg_symbol (context);
       if (!label) return null_func;
       printf ("[DEBUG] Secondary Function '%s'\n", label);
 
@@ -278,6 +350,7 @@ caos_get_function (CaosContext *context)
 caos_command_t
 caos_get_command (CaosContext *context)
 {
+  printf ("[DEBUG] Command\n");
   return caos_get_function (context).command;
 }
 
@@ -297,7 +370,6 @@ void
 caos_tick (CaosContext *context)
 {
   caos_command_t command = caos_get_command (context);
-  caos_advance(context);
   if (command) command (context);
   else ERROR ("Expected command");
 }

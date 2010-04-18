@@ -14,12 +14,16 @@ typedef struct CaosContext CaosContext;
 
 typedef void (*caos_command_t) (CaosContext*);
 typedef CaosValue (*caos_expression_t) (CaosContext*);
+typedef bool (*caos_condition_t) (CaosValue, CaosValue);
 
 CaosRuntime* caos_runtime_new();
+
 void caos_register_function
-       (CaosRuntime*, char*, caos_command_t, caos_expression_t);
+  (CaosRuntime*, char*, caos_command_t, caos_expression_t);
 void caos_register_binomial_function
-       (CaosRuntime*, char*, char*, caos_command_t, caos_expression_t);
+  (CaosRuntime*, char*, char*, caos_command_t, caos_expression_t);
+void caos_register_condition
+  (CaosRuntime*, int precedence, char*, caos_condition_t);      
 
 CaosContext* caos_context_new(CaosRuntime*);
 
@@ -34,9 +38,11 @@ void caos_jump (CaosContext*, int);
 
 bool caos_done (CaosContext*);
 
+char* caos_arg_symbol (CaosContext*);
 CaosValue caos_arg_value (CaosContext*);
 int caos_arg_int (CaosContext*);
 char* caos_arg_string (CaosContext*);
+bool caos_arg_bool (CaosContext*);
 
 char* caos_get_error (CaosContext*);
 

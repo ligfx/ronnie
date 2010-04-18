@@ -1,8 +1,21 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "caos.h"
+
+bool c_and (CaosValue left, CaosValue right)
+{
+  assert (caos_value_is_bool (left));
+  assert (caos_value_is_bool (right));
+  return caos_value_as_bool (left) == caos_value_as_bool (right);
+}
+
+bool c_eq (CaosValue left, CaosValue right)
+{
+  return caos_value_equal (left, right);
+}
 
 void c_bam (CaosContext *context)
 {
@@ -73,11 +86,11 @@ c_repe (CaosContext *context) {
 void
 c_doif (CaosContext *context) {
   // Stack []
- // bool match = caos_arg_condition (context);
+  bool match = caos_arg_bool (context);
 
-//  caos_stack_push (context, match);
+  caos_stack_push (context, match);
   caos_stack_push (context, 0);
-//  if (!match)
+  if (!match)
     caos_fast_forward (context, "elif", "else", "endi", 0);
   // Stack [already_matched]
 }
@@ -86,13 +99,13 @@ void
 c_elif (CaosContext *context) {
   // Stack [already_matched]
   if (caos_stack_peek (context) == true // already matched
-  // || caos_arg_condition (context) == false // didn't match this time
+  // || caos_arg_bool (context) == false // didn't match this time
   ) {
     caos_fast_forward (context, "elif", "else", "endi", 0);
     return;
   }
 
-  (void)caos_stack_pop (context);
+  (void) caos_stack_pop (context);
   caos_stack_push (context, true);
   // Stack [already_matched]
 }
@@ -140,6 +153,9 @@ int main ()
     token_symbol_new ("repe"),
     token_symbol_new ("bam!"),
     token_symbol_new ("doif"),
+    token_int_new (0),
+    token_symbol_new ("eq"),
+    token_int_new (1),
     token_symbol_new ("outs"),
     token_string_new ("This should be skipped right now"),
     token_symbol_new ("endi"),
@@ -160,6 +176,11 @@ int main ()
   caos_register_function (runtime, "repe", c_repe, 0);
   caos_register_function (runtime, "reps", c_reps, 0);
   caos_register_binomial_function (runtime, "new:", "simp", c_new_simp, 0);
+
+  caos_register_condition (runtime, 0, "and", c_and);
+//  caos_register_condition (runtime, 0, "or", c_or);
+  caos_register_condition (runtime, 10, "eq", c_eq);
+//  caos_register_condition (runtime, 10, "ne", c_ne);
 
   caos_set_script (context, script);
 
