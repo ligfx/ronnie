@@ -1,24 +1,22 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "caos.h"
 
-typedef bool (*caos_condition_t) (CaosValue, CaosValue);
+typedef bool (*caos_comparison_t) (CaosValue, CaosValue);
+typedef bool (*caos_logical_t) (bool, bool);
 
-bool c_and (CaosValue left, CaosValue right)
+bool c_and (bool left, bool right)
 {
-  assert (caos_value_is_bool (left));
-  assert (caos_value_is_bool (right));
-  return caos_value_as_bool (left) && caos_value_as_bool (right);
+  return left && right;
 }
 
-bool c_or (CaosValue left, CaosValue right)
+bool c_or (bool left, bool right)
 {
-  assert (caos_value_is_bool (left));
-  assert (caos_value_is_bool (right));
-  return caos_value_as_bool (left) || caos_value_as_bool (right);
+  return left || right;
 }
 
 bool c_eq (CaosValue left, CaosValue right)
@@ -31,9 +29,11 @@ bool c_ne (CaosValue left, CaosValue right)
   return !c_eq (left, right);
 }
 
+#ifndef streq
 #define streq(left, right) (strcmp(left, right) == 0)
+#endif
 
-caos_condition_t
+caos_comparison_t
 comparison_from_symbol (char *sym)
 {
   if (streq (sym, "eq")) return c_eq;
@@ -42,7 +42,7 @@ comparison_from_symbol (char *sym)
   return NULL;
 }
 
-caos_condition_t
+caos_logical_t
 logical_from_symbol (char *sym)
 {
   if (streq (sym, "and")) return c_and;
@@ -55,8 +55,10 @@ bool
 caos_arg_bool (CaosContext *context)
 {
 
-  CaosValue left, right, ret;
-  caos_condition_t compare_func, logic_func;
+  CaosValue left, right;
+  caos_comparison_t compare_func;
+  caos_logical_t logic_func;
+  bool ret, second;
 
   left = caos_arg_value (context);
   compare_func = comparison_from_symbol (caos_arg_symbol (context));
@@ -67,7 +69,7 @@ caos_arg_bool (CaosContext *context)
     return false;
   }
   
-  ret = caos_value_bool_new (compare_func (left, right));
+  ret = compare_func (left, right);
 
   while (true) {
     {
@@ -89,11 +91,11 @@ caos_arg_bool (CaosContext *context)
       return false;
     }
 
-    right = caos_value_bool_new (compare_func (left, right));
-    ret = caos_value_bool_new (logic_func (ret, right));
+    second = compare_func (left, right);
+    ret = logic_func (ret, second);
   }
 
-  return caos_value_as_bool(ret);
+  return ret;
 }
 
 void c_bam (CaosContext *context)
