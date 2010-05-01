@@ -23,9 +23,11 @@ void c_bam (CaosContext *context)
 }
 
 void c_outs (CaosContext *context)
-{
+{ 
   char *string = caos_arg_string (context);
   if (caos_get_error (context)) return;
+
+  // smith_cost (caos_user_data (context), 1);
 
   printf ("%s\n", string);
 }
@@ -87,6 +89,7 @@ void
 c_doif (CaosContext *context) {
   // Stack []
   bool match = caos_arg_bool (context);
+  if (caos_get_error (context)) return;
 
   caos_stack_push (context, match);
   caos_stack_push (context, 0);
@@ -182,6 +185,8 @@ int main ()
     token_string_new ("This should be skipped right now"),
     token_symbol_new ("endi"),
     token_symbol_new ("bam!"),
+    token_symbol_new ("outs"),
+    token_string_new ("Test OUTS"),
     token_eoi()
   };
 
@@ -215,7 +220,7 @@ int main ()
   caos_set_script (context, &s, i);
 
   while (!caos_done (context)) {
-    caos_tick (context);
+    caos_tick (context, NULL);
     if ((error = caos_get_error (context))) printf ("[ERROR] %s\n", error);
   }
 }

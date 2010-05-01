@@ -25,6 +25,7 @@ struct CaosContext {
   char *error;
   void *script;
   ICaosScript script_iface;
+  void *user_data;
   std::stack<int> *stack;
 };
 

@@ -67,11 +67,9 @@ CaosContext*
 caos_context_new (CaosRuntime *runtime) {
   CaosContext *context = (CaosContext*) malloc (sizeof (*context)); {
     context->runtime = runtime;
-
     context->error = NULL;
-    
     context->script = NULL;
-
+    context->user_data = NULL;
     context->stack = new std::stack <int>();
   }
   return context;
@@ -367,9 +365,19 @@ caos_advance (CaosContext *context)
 }
 
 void
-caos_tick (CaosContext *context)
+caos_tick (CaosContext *context, void *user_data)
 {
-  caos_command_t command = caos_get_command (context);
-  if (command) command (context);
-  else ERROR ("Expected command");
+  context->user_data = user_data;
+  {
+    caos_command_t command = caos_get_command (context);
+    if (command) command (context);
+    else ERROR ("Expected command");
+  }
+  context->user_data = NULL;
+}
+
+void*
+caos_user_data (CaosContext *context)
+{
+  return context->user_data;
 }

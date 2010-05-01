@@ -60,7 +60,8 @@ char* caos_get_error (CaosContext*);
 
 void caos_set_script (CaosContext*, void*, struct ICaosScript);
 
-void caos_tick (CaosContext*);
+void caos_tick (CaosContext*, void *user_data);
+void* caos_user_data (CaosContext*);
 
 #ifdef __cplusplus
 }
