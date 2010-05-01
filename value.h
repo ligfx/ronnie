@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include "common.h"
 #include "type.h"
 
 #include <stdbool.h>
@@ -66,17 +67,17 @@ typedef struct CaosValue {
   intptr_t value;
 } CaosValue;
 
-CaosValue caos_value_int_new (int);
-CaosValue caos_value_string_new (char*);
-CaosValue caos_value_null ();
+RONNIE_PUBLIC CaosValue caos_value_int_new (int);
+RONNIE_PUBLIC CaosValue caos_value_string_new (char*);
+RONNIE_PUBLIC CaosValue caos_value_null ();
 
-bool caos_value_is_integer (CaosValue);
-bool caos_value_is_string (CaosValue);
+RONNIE_PUBLIC bool caos_value_is_integer (CaosValue);
+RONNIE_PUBLIC bool caos_value_is_string (CaosValue);
 
-int caos_value_as_integer (CaosValue);
-char* caos_value_as_string (CaosValue);
+RONNIE_PUBLIC int caos_value_as_integer (CaosValue);
+RONNIE_PUBLIC char* caos_value_as_string (CaosValue);
 
-bool caos_value_equal (CaosValue, CaosValue);
+RONNIE_PUBLIC bool caos_value_equal (CaosValue, CaosValue);
 
 #ifdef __cplusplus
 }

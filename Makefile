@@ -1,11 +1,17 @@
-main: main.o caos.o token.o value.o dairy.o
-	clang -g $^ -lstdc++ -o $@
+CC=gcc
+CFLAGS=-fvisibility=hidden -fpic
+
+main: main.o libronnie.so
+	${CC} -g $^ -lstdc++ -L. -lronnie -o $@ -Wl,-rpath,.
+
+libronnie.so: caos.o token.o value.o dairy.o
+	${CC} -shared -lstdc++ $^ -o $@
 
 %.o: %.c
-	clang -g -c $^
+	${CC} -g -c $^ ${CFLAGS}
 
 %.o: %.cpp
-	clang -g -c $^
+	${CC} -g -c $^ ${CFLAGS}
 
 clean:
-	rm main *.o
+	rm main libronnie.so *.o
