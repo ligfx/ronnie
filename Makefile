@@ -1,4 +1,4 @@
-main: main.o caos.o token.o value.o
+main: main.o caos.o token.o value.o dairy.o
 	clang -g $^ -lstdc++ -o $@
 
 %.o: %.c

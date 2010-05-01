@@ -5,98 +5,7 @@
 #include <time.h>
 
 #include "caos.h"
-
-typedef bool (*caos_comparison_t) (CaosValue, CaosValue);
-typedef bool (*caos_logical_t) (bool, bool);
-
-bool c_and (bool left, bool right)
-{
-  return left && right;
-}
-
-bool c_or (bool left, bool right)
-{
-  return left || right;
-}
-
-bool c_eq (CaosValue left, CaosValue right)
-{
-  return caos_value_equal (left, right);
-}
-
-bool c_ne (CaosValue left, CaosValue right)
-{
-  return !c_eq (left, right);
-}
-
-#ifndef streq
-#define streq(left, right) (strcmp(left, right) == 0)
-#endif
-
-caos_comparison_t
-comparison_from_symbol (char *sym)
-{
-  if (streq (sym, "eq")) return c_eq;
-  if (streq (sym, "ne")) return c_ne;
-
-  return NULL;
-}
-
-caos_logical_t
-logical_from_symbol (char *sym)
-{
-  if (streq (sym, "and")) return c_and;
-  if (streq (sym, "or")) return c_or;
-
-  return NULL;
-}
-
-bool
-caos_arg_bool (CaosContext *context)
-{
-
-  CaosValue left, right;
-  caos_comparison_t compare_func;
-  caos_logical_t logic_func;
-  bool ret, second;
-
-  left = caos_arg_value (context);
-  compare_func = comparison_from_symbol (caos_arg_symbol (context));
-  right = caos_arg_value (context);
-  if (caos_get_error (context)) return false;
-  if (!compare_func) {
-    caos_set_error (context, (char*)"No such comparison");
-    return false;
-  }
-  
-  ret = compare_func (left, right);
-
-  while (true) {
-    {
-      if (caos_done (context)) break;
-      CaosToken next = caos_get_token (context);
-      if (!token_is_symbol (next)) break;
-
-      logic_func = logical_from_symbol (token_as_symbol (next));
-      if (!logic_func) break;
-      caos_advance (context); // Because we didn't call arg_*!
-    }
-
-    left = caos_arg_value (context);
-    compare_func = comparison_from_symbol (caos_arg_symbol (context));
-    right = caos_arg_value (context);
-    if (caos_get_error (context)) return false;
-    if (!compare_func) {
-      caos_set_error (context, (char*)"No such comparison");
-      return false;
-    }
-
-    second = compare_func (left, right);
-    ret = logic_func (ret, second);
-  }
-
-  return ret;
-}
+#include "dairy.h"
 
 void c_bam (CaosContext *context)
 {
@@ -287,6 +196,7 @@ int main ()
     token_int_new (0),
     token_symbol_new ("eq"),
     token_int_new (1),
+    token_symbol_new ("endi"),
     token_eoi()
   };
 

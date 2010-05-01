@@ -10,6 +10,8 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+
+
 /*
   Types:
     string
@@ -65,20 +67,14 @@ typedef struct CaosValue {
 } CaosValue;
 
 CaosValue caos_value_int_new (int);
-CaosValue caos_value_float_new (float);
 CaosValue caos_value_string_new (char*);
-CaosValue caos_value_bool_new (bool);
 CaosValue caos_value_null ();
 
 bool caos_value_is_integer (CaosValue);
-bool caos_values_is_float (CaosValue);
 bool caos_value_is_string (CaosValue);
-bool caos_value_is_bool (CaosValue);
 
 int caos_value_as_integer (CaosValue);
-float caos_value_as_float (CaosValue);
 char* caos_value_as_string (CaosValue);
-bool caos_value_as_bool (CaosValue);
 
 bool caos_value_equal (CaosValue, CaosValue);
 

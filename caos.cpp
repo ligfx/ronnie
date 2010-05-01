@@ -160,21 +160,22 @@ caos_fast_forward (CaosContext *context, ...)
   }
 
   while (true) {
-    caos_advance_to_next_symbol(context);
     CaosToken sym = caos_get_token(context);
     if (caos_get_error (context)) {
       // The only error will be on EOI, therefore we can override it
-      caos_override_error (context, "Couldn't fast forward to symbol");
+      caos_override_error (context, (char*)"Couldn't fast forward to symbol");
       return token_null();
     }
     char *str = token_as_string (sym);
 
     std::list<char*>::iterator it, end;
-    for (it = strings.begin(), end = strings.end(); it != end; ++it)
+    for (it = strings.begin(), end = strings.end(); it != end; ++it) {
       if (strcmp (str, *it) == 0)
       {
         return sym;
       }
+    }
+    caos_advance_to_next_symbol(context);
   }
 }
 
@@ -211,41 +212,6 @@ caos_arg_value (CaosContext *context)
   // caos_get_expression () advanced already
   if (!expr) caos_advance(context);
   return ret;
-}
-
-int
-caos_arg_int (CaosContext *context)
-{
-  CaosValue next = caos_arg_value (context);
-  if (!caos_value_is_integer (next)) {
-    ERROR ("Expected integer");
-    return -42;
-  }
-
-  printf ("[DEBUG] Int '%i'\n", caos_value_as_integer (next));
-  return caos_value_as_integer (next);
-}
-
-char*
-caos_arg_string (CaosContext *context)
-{
-  CaosValue next = caos_arg_value (context);
-  if (!caos_value_is_string (next)) {
-    ERROR ("Expected string");
-    return NULL;
-  }
-
-  printf ("[DEBUG] String '%s'\n", caos_value_as_string (next));
-  return caos_value_as_string (next);
-}
-
-char*
-caos_arg_symbol (CaosContext *context)
-{
-  CaosToken tok = caos_get_token (context);
-  caos_advance (context);
-  if (!token_is_symbol (tok)) return (char*) "[null]";
-  return token_as_string (tok);
 }
 
 FunctionRef
