@@ -16,7 +16,6 @@ caos_runtime_new() {
   CaosRuntime *runtime = (CaosRuntime*) malloc (sizeof (*runtime)); {
     runtime->functions = std::map <char*, FunctionRef>();
     runtime->binomials = std::map <char*, std::map <char*, FunctionRef> >();
-    runtime->conditions_precedence = std::map <char*, int>();
     runtime->conditions = std::map <char*, caos_condition_t>();
   }
 
@@ -59,7 +58,6 @@ caos_register_condition (
 ) {
 
   // TODO: Error if label already registered as condition
-  runtime->conditions_precedence [label] = precedence;
   runtime->conditions [label] = func;
 }
 
@@ -220,58 +218,41 @@ caos_arg_value (CaosContext *context)
 bool
 caos_arg_bool (CaosContext *context)
 {
-  CaosRuntime *rt = context->runtime;
+  CaosRuntime *rt = caos_get_runtime(context);
 
-  // Shunting yard
+  CaosValue left, right, ret;
+  char *compare, *logic;
 
-  std::stack <CaosValue> stack;
-  std::stack <char*> ops;
+  left = caos_arg_value (context);
 
-  stack.push (caos_arg_value (context));
+  compare = caos_arg_symbol (context);
+  if (!rt->conditions.count (compare)) {
+    ERROR ("No such condition");
+    return false;
+  }
 
-  while (true)
-  {
-    char *sym = caos_arg_symbol (context);
-    if (caos_get_error (context)) return false;
+  right = caos_arg_value (context);
+  
+  ret = caos_value_bool_new (rt->conditions [compare] (left, right));
 
-    printf ("Condition: %s\n", sym);
-    if (!rt->conditions_precedence.count (sym)) {
-      ERROR ("No such condition");
-      return false;
-    }
-    int precedence = rt->conditions_precedence [sym];
-    
-    while (!ops.empty() && rt->conditions_precedence [ops.top()] <= precedence) {
-      CaosValue right = stack.top(); stack.pop();
-      CaosValue left = stack.top(); stack.pop();
-
-      char *op = ops.top(); ops.pop();
-      stack.push (caos_value_bool_new (rt->conditions [op] (left, right)));
-    }
-    ops.push (sym);
-
-    stack.push (caos_arg_value (context));
-    if (caos_get_error (context)) return false;
-
-    // while
+  while (true) {
     {
       CaosToken next = caos_get_token (context);
       if (!token_is_symbol (next)) break;
-      if (!rt->conditions_precedence.count (token_as_symbol (next))) break;
+      if (!rt->conditions.count (token_as_symbol (next))) break;
     }
+
+    logic = caos_arg_symbol (context);
+    left = caos_arg_value (context);
+    compare = caos_arg_symbol (context);
+    right = caos_arg_value (context);
+
+    right = caos_value_bool_new (rt->conditions [compare] (left, right));
+
+    ret = caos_value_bool_new (rt->conditions [logic] (ret, right));
   }
 
-  while (!ops.empty()) {
-    CaosValue right = stack.top(); stack.pop();
-    CaosValue left = stack.top(); stack.pop();
-
-    char *op = ops.top(); ops.pop();
-    stack.push (caos_value_bool_new (rt->conditions [op] (left, right)));
-  }
-
-  assert (stack.size() == 1);
-  assert (caos_value_is_bool (stack.top()));
-  return caos_value_as_bool (stack.top());
+  return caos_value_as_bool(ret);
 }
 
 int
@@ -305,7 +286,7 @@ caos_arg_symbol (CaosContext *context)
 {
   CaosToken tok = caos_get_token (context);
   caos_advance (context);
-  if (!token_is_symbol (tok)) return NULL;
+  if (!token_is_symbol (tok)) return (char*) "[null]";
   return token_as_string (tok);
 }
 
@@ -380,4 +361,10 @@ void*
 caos_user_data (CaosContext *context)
 {
   return context->user_data;
+}
+
+CaosRuntime*
+caos_get_runtime (CaosContext *context)
+{
+  return context->runtime;
 }

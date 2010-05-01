@@ -16,7 +16,6 @@ struct CaosRuntime {
   std::map <char*, FunctionRef> functions;
   std::map <char*, std::map <char*, FunctionRef> > binomials;
 
-  std::map <char*, int> conditions_precedence;
   std::map <char*, caos_condition_t> conditions;
 };
 

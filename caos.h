@@ -58,6 +58,8 @@ bool caos_arg_bool (CaosContext*);
 
 char* caos_get_error (CaosContext*);
 
+CaosRuntime* caos_get_runtime (CaosContext*);
+
 void caos_set_script (CaosContext*, void*, struct ICaosScript);
 
 void caos_tick (CaosContext*, void *user_data);
