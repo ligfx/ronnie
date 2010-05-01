@@ -1,25 +1,36 @@
 #include "value.h"
 
 #include <stdio.h>
+#include <string.h>
 
 CaosValue
 caos_value_int_new (int i)
 {
-  CaosValue val = { CAOS_INT, .value.i = i };
+  CaosValue val = { CAOS_INT, i };
+  return val;
+}
+
+CaosValue
+caos_value_float_new (float f)
+{
+  CaosValue val;
+  val.type = CAOS_FLOAT;
+  // TODO: This is a hack!
+  memcpy (&val.value, &f, sizeof(val.value));
   return val;
 }
 
 CaosValue
 caos_value_string_new (char *s)
 {
-  CaosValue val = { CAOS_STRING, .value.s = s };
+  CaosValue val = { CAOS_STRING, (intptr_t)s };
   return val;
 }
 
 CaosValue
 caos_value_bool_new (bool b)
 {
-  CaosValue val = { CAOS_BOOL, .value.b = b };
+  CaosValue val = { CAOS_BOOL, b };
   return val;
 }
 
@@ -37,6 +48,12 @@ caos_value_is_integer (CaosValue val)
 }
 
 bool
+caos_value_is_float (CaosValue val)
+{
+  return val.type == CAOS_FLOAT;
+}
+
+bool
 caos_value_is_string (CaosValue val)
 {
   return val.type == CAOS_STRING;
@@ -51,19 +68,28 @@ caos_value_is_bool (CaosValue val)
 int
 caos_value_as_integer (CaosValue val)
 {
-  return val.value.i;
+  return val.value;
+}
+
+float
+caos_value_as_float (CaosValue val)
+{
+  float f;
+  // TODO: This is a hack!
+  memcpy (&f, &val.value, sizeof(float));
+  return f;
 }
 
 char*
 caos_value_as_string (CaosValue val)
 {
-  return val.value.s;
+  return (char*)val.value;
 }
 
 bool
 caos_value_as_bool (CaosValue val)
 {
-  return val.value.b;
+  return val.value;
 }
 
 bool

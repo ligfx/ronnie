@@ -10,6 +10,7 @@ typedef enum CaosType {
   CAOS_INT,
   CAOS_BOOL,
   CAOS_SYMBOL,
+  CAOS_FLOAT,
   CAOS_EOI
 } CaosType;
 
