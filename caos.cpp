@@ -16,7 +16,6 @@ caos_runtime_new() {
   CaosRuntime *runtime = (CaosRuntime*) malloc (sizeof (*runtime)); {
     runtime->functions = std::map <char*, FunctionRef>();
     runtime->binomials = std::map <char*, std::map <char*, FunctionRef> >();
-    runtime->conditions = std::map <char*, caos_condition_t>();
   }
 
   return runtime;
@@ -47,18 +46,6 @@ caos_register_binomial_function (
   // TODO: Error if base already registered as function
   // TODO: Error if label already registered
   runtime->binomials [base] [label] = f;
-}
-
-void
-caos_register_condition (
-  CaosRuntime *runtime,
-  int precedence,
-  char *label,
-  caos_condition_t func
-) {
-
-  // TODO: Error if label already registered as condition
-  runtime->conditions [label] = func;
 }
 
 CaosContext*
@@ -134,6 +121,12 @@ caos_get_error (CaosContext *context)
   return context->error;
 }
 
+void
+caos_override_error (CaosContext *context, char *msg)
+{
+  context->error = msg;
+}
+
 bool
 caos_done (CaosContext *context)
 {
@@ -143,6 +136,7 @@ caos_done (CaosContext *context)
 
 void caos_advance_to_next_symbol (CaosContext *context)
 {
+  if (caos_done(context)) return;
   CaosToken tok;
   do {
     caos_advance (context);
@@ -168,7 +162,11 @@ caos_fast_forward (CaosContext *context, ...)
   while (true) {
     caos_advance_to_next_symbol(context);
     CaosToken sym = caos_get_token(context);
-    if (caos_get_error (context)) return token_null();
+    if (caos_get_error (context)) {
+      // The only error will be on EOI, therefore we can override it
+      caos_override_error (context, "Couldn't fast forward to symbol");
+      return token_null();
+    }
     char *str = token_as_string (sym);
 
     std::list<char*>::iterator it, end;
@@ -213,46 +211,6 @@ caos_arg_value (CaosContext *context)
   // caos_get_expression () advanced already
   if (!expr) caos_advance(context);
   return ret;
-}
-
-bool
-caos_arg_bool (CaosContext *context)
-{
-  CaosRuntime *rt = caos_get_runtime(context);
-
-  CaosValue left, right, ret;
-  char *compare, *logic;
-
-  left = caos_arg_value (context);
-
-  compare = caos_arg_symbol (context);
-  if (!rt->conditions.count (compare)) {
-    ERROR ("No such condition");
-    return false;
-  }
-
-  right = caos_arg_value (context);
-  
-  ret = caos_value_bool_new (rt->conditions [compare] (left, right));
-
-  while (true) {
-    {
-      CaosToken next = caos_get_token (context);
-      if (!token_is_symbol (next)) break;
-      if (!rt->conditions.count (token_as_symbol (next))) break;
-    }
-
-    logic = caos_arg_symbol (context);
-    left = caos_arg_value (context);
-    compare = caos_arg_symbol (context);
-    right = caos_arg_value (context);
-
-    right = caos_value_bool_new (rt->conditions [compare] (left, right));
-
-    ret = caos_value_bool_new (rt->conditions [logic] (ret, right));
-  }
-
-  return caos_value_as_bool(ret);
 }
 
 int

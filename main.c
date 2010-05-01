@@ -5,16 +5,95 @@
 
 #include "caos.h"
 
+typedef bool (*caos_condition_t) (CaosValue, CaosValue);
+
 bool c_and (CaosValue left, CaosValue right)
 {
   assert (caos_value_is_bool (left));
   assert (caos_value_is_bool (right));
-  return caos_value_as_bool (left) == caos_value_as_bool (right);
+  return caos_value_as_bool (left) && caos_value_as_bool (right);
+}
+
+bool c_or (CaosValue left, CaosValue right)
+{
+  assert (caos_value_is_bool (left));
+  assert (caos_value_is_bool (right));
+  return caos_value_as_bool (left) || caos_value_as_bool (right);
 }
 
 bool c_eq (CaosValue left, CaosValue right)
 {
   return caos_value_equal (left, right);
+}
+
+bool c_ne (CaosValue left, CaosValue right)
+{
+  return !c_eq (left, right);
+}
+
+#define streq(left, right) (strcmp(left, right) == 0)
+
+caos_condition_t
+comparison_from_symbol (char *sym)
+{
+  if (streq (sym, "eq")) return c_eq;
+  if (streq (sym, "ne")) return c_ne;
+
+  return NULL;
+}
+
+caos_condition_t
+logical_from_symbol (char *sym)
+{
+  if (streq (sym, "and")) return c_and;
+  if (streq (sym, "or")) return c_or;
+
+  return NULL;
+}
+
+bool
+caos_arg_bool (CaosContext *context)
+{
+
+  CaosValue left, right, ret;
+  caos_condition_t compare_func, logic_func;
+
+  left = caos_arg_value (context);
+  compare_func = comparison_from_symbol (caos_arg_symbol (context));
+  right = caos_arg_value (context);
+  if (caos_get_error (context)) return false;
+  if (!compare_func) {
+    caos_set_error (context, (char*)"No such comparison");
+    return false;
+  }
+  
+  ret = caos_value_bool_new (compare_func (left, right));
+
+  while (true) {
+    {
+      if (caos_done (context)) break;
+      CaosToken next = caos_get_token (context);
+      if (!token_is_symbol (next)) break;
+
+      logic_func = logical_from_symbol (token_as_symbol (next));
+      if (!logic_func) break;
+      caos_advance (context); // Because we didn't call arg_*!
+    }
+
+    left = caos_arg_value (context);
+    compare_func = comparison_from_symbol (caos_arg_symbol (context));
+    right = caos_arg_value (context);
+    if (caos_get_error (context)) return false;
+    if (!compare_func) {
+      caos_set_error (context, (char*)"No such comparison");
+      return false;
+    }
+
+    right = caos_value_bool_new (compare_func (left, right));
+    ret = caos_value_bool_new (logic_func (ret, right));
+  }
+
+  return caos_value_as_bool(ret);
 }
 
 void c_bam (CaosContext *context)
@@ -184,9 +263,28 @@ int main ()
     token_symbol_new ("outs"),
     token_string_new ("This should be skipped right now"),
     token_symbol_new ("endi"),
+    token_symbol_new ("doif"),
+    token_int_new (5),
+    token_symbol_new ("eq"),
+    token_int_new (5),
+    token_symbol_new ("and"),
+    token_int_new (1),
+    token_symbol_new ("ne"),
+    token_int_new (2),
+    token_symbol_new ("or"),
+    token_int_new (6),
+    token_symbol_new ("eq"),
+    token_int_new (7),
+    token_symbol_new ("outs"),
+    token_string_new ("This, on the other hand, should be output"),
+    token_symbol_new ("endi"),
     token_symbol_new ("bam!"),
     token_symbol_new ("outs"),
     token_string_new ("Test OUTS"),
+    token_symbol_new ("doif"),
+    token_int_new (0),
+    token_symbol_new ("eq"),
+    token_int_new (1),
     token_eoi()
   };
 
@@ -203,11 +301,6 @@ int main ()
   caos_register_function (runtime, "repe", c_repe, 0);
   caos_register_function (runtime, "reps", c_reps, 0);
   caos_register_binomial_function (runtime, "new:", "simp", c_new_simp, 0);
-
-  caos_register_condition (runtime, 0, "and", c_and);
-//  caos_register_condition (runtime, 0, "or", c_or);
-  caos_register_condition (runtime, 10, "eq", c_eq);
-//  caos_register_condition (runtime, 10, "ne", c_ne);
 
   struct Script s = { script, script };
   struct ICaosScript i = {

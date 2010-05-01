@@ -15,8 +15,6 @@ typedef struct FunctionRef {
 struct CaosRuntime {
   std::map <char*, FunctionRef> functions;
   std::map <char*, std::map <char*, FunctionRef> > binomials;
-
-  std::map <char*, caos_condition_t> conditions;
 };
 
 struct CaosContext {
@@ -29,13 +27,8 @@ struct CaosContext {
 };
 
 CaosRuntime* caos_get_runtime (CaosContext*);
-
-CaosToken caos_get_token (CaosContext*);
-
-void caos_advance (CaosContext*);
 void caos_advance_to_next_symbol (CaosContext*);
-
-void caos_set_error (CaosContext*, char*);
+void caos_override_error (CaosContext*, char*);
 
 FunctionRef caos_get_function (CaosContext*);
 caos_command_t caos_get_command (CaosContext*);
