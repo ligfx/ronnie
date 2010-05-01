@@ -16,6 +16,18 @@ typedef void (*caos_command_t) (CaosContext*);
 typedef CaosValue (*caos_expression_t) (CaosContext*);
 typedef bool (*caos_condition_t) (CaosValue, CaosValue);
 
+typedef void (*caos_script_advance_t) (void*);
+typedef CaosToken (*caos_script_get_t) (void*);
+typedef void (*caos_script_jump_t) (void*, int);
+typedef int (*caos_script_mark_t) (void*);
+
+struct ICaosScript {
+  caos_script_advance_t advance;
+  caos_script_get_t get;
+  caos_script_jump_t jump;
+  caos_script_mark_t mark;
+};
+
 CaosRuntime* caos_runtime_new();
 
 void caos_register_function
@@ -46,7 +58,7 @@ bool caos_arg_bool (CaosContext*);
 
 char* caos_get_error (CaosContext*);
 
-void caos_set_script (CaosContext*, CaosToken[]);
+void caos_set_script (CaosContext*, void*, struct ICaosScript);
 
 void caos_tick (CaosContext*);
 

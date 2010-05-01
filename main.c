@@ -130,6 +130,28 @@ c_endi (CaosContext *context) {
   // Stack []
 }
 
+struct Script {
+  CaosToken *script;
+  CaosToken *ip;
+};
+
+void script_advance (struct Script *script) {
+  script->ip++;
+}
+
+CaosToken script_get (struct Script *script) {
+  return *script->ip;
+}
+
+
+void script_jump (struct Script *script, int mark) {
+  script->ip = script->script + mark;
+}
+
+int script_mark (struct Script *script) {
+  return script->ip - script->script;
+}
+
 int main ()
 {
   char *error;
@@ -182,7 +204,15 @@ int main ()
   caos_register_condition (runtime, 10, "eq", c_eq);
 //  caos_register_condition (runtime, 10, "ne", c_ne);
 
-  caos_set_script (context, script);
+  struct Script s = { script, script };
+  struct ICaosScript i = {
+    (caos_script_advance_t) script_advance, 
+    (caos_script_get_t)     script_get,
+    (caos_script_jump_t)    script_jump,
+    (caos_script_mark_t)    script_mark
+  };
+
+  caos_set_script (context, &s, i);
 
   while (!caos_done (context)) {
     caos_tick (context);

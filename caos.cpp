@@ -71,7 +71,6 @@ caos_context_new (CaosRuntime *runtime) {
     context->error = NULL;
     
     context->script = NULL;
-    context->ip = NULL;
 
     context->stack = new std::stack <int>();
   }
@@ -79,22 +78,22 @@ caos_context_new (CaosRuntime *runtime) {
 }
 
 void
-caos_set_script (CaosContext *context, CaosToken script[])
+caos_set_script (CaosContext *context, void *script, ICaosScript iface)
 {
   context->script = script;
-  context->ip = script;
+  context->script_iface = iface;
 }
 
 int
 caos_mark (CaosContext *context)
 {
-  return context->ip - context->script;
+  return context->script_iface.mark (context->script);
 }
 
 void
 caos_jump (CaosContext *context, int mark)
 {
-  context->ip = context->script + mark;
+  context->script_iface.jump (context->script, mark);
 }
 
 void
@@ -124,7 +123,7 @@ caos_get_token (CaosContext *context)
     ERROR ("Expected token, got EOI");
     return token_null();
   }
-  return *context->ip;
+  return context->script_iface.get (context->script);
 }
 
 void
@@ -142,7 +141,8 @@ caos_get_error (CaosContext *context)
 bool
 caos_done (CaosContext *context)
 {
-  return context->error || (context->ip->type == CAOS_EOI);
+  return context->error ||
+        (context->script_iface.get (context->script).type == CAOS_EOI);
 }
 
 void caos_advance_to_next_symbol (CaosContext *context)
@@ -363,7 +363,7 @@ caos_get_expression (CaosContext *context)
 void
 caos_advance (CaosContext *context)
 {
-  context->ip++;
+  context->script_iface.advance (context->script);
 }
 
 void

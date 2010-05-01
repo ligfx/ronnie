@@ -23,8 +23,8 @@ struct CaosRuntime {
 struct CaosContext {
   CaosRuntime *runtime;
   char *error;
-  CaosToken *script;
-  CaosToken *ip;
+  void *script;
+  ICaosScript script_iface;
   std::stack<int> *stack;
 };
 
