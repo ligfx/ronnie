@@ -249,6 +249,10 @@ bool iswhitespace (char c) {
   }
 }
 
+bool iseol (char c) {
+  return c == '\n' || c == '\r';
+}
+
 bool isstrchar (char c) {
   return c != '"';
 }
@@ -288,21 +292,30 @@ char* lex_string (CaosLexer *l, int i, bool (*keep_going) (char), char (*trans)(
   return s;
 }
 
-CaosValue caos_lexer_lex (CaosLexer *l) {
-  int i;
+int lex_digit (CaosLexer *l, char c) {
+  int i = c - '0';
+  while (isdigit(*l->p)) {
+    i *= 10;
+    i += *l->p++ - '0';
+  }
+  return i;
+}
 
+CaosValue caos_lexer_lex (CaosLexer *l) {
+  char c;
+
+start:
   if (!*l->p) return caos_value_eoi();
 
-  char c = *l->p++;
+  c = *l->p++;
   while (iswhitespace(c)) c = *l->p++;
-  
-   if (isdigit (c)) {
-    i = c - '0';
-    while (isdigit(*l->p)) {
-      i *= 10;
-      i += *l->p++ - '0';
-    }
-    return caos_value_int (i);
+  if (c == '*') {
+    while (!iseol (c)) c = *l->p++;
+    goto start;
+  }
+
+  if (isdigit (c)) {
+    return caos_value_int (lex_digit(l, c));
   }
   else if (isalpha (c)) {
     l->p--;
@@ -311,6 +324,8 @@ CaosValue caos_lexer_lex (CaosLexer *l) {
 
   char *s;
   switch (c) {
+  case '-':
+    return caos_value_int (-lex_digit(l, '0'));
   case '"':
     s = lex_string (l, 0, isstrchar, NULL);
     l->p++; // skip endquote

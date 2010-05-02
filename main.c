@@ -248,7 +248,7 @@ int main ()
   }
 
   {
-    CaosLexer lexer = caos_lexer ("nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi");
+    CaosLexer lexer = caos_lexer ("nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5");
 
     int i, m;
     i = m = 0;
