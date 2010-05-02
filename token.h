@@ -9,14 +9,11 @@ extern "C" {
 #include "type.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct {
   CaosType type;
-  union {
-    int i;
-    float f;
-    char *s;
-  } value;
+  intptr_t value;
 } CaosToken;
 
 RONNIE_PUBLIC CaosToken token_symbol (char*);
