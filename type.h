@@ -11,7 +11,8 @@ typedef enum CaosType {
   CAOS_BOOL,
   CAOS_SYMBOL,
   CAOS_FLOAT,
-  CAOS_EOI
+  CAOS_EOI,
+  CAOS_NULL
 } CaosType;
 
 #ifdef __cplusplus

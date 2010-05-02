@@ -123,26 +123,10 @@ caos_arg_string (CaosContext *context)
 }
 
 CaosValue
-caos_value_float_new (float f)
-{
-  CaosValue val;
-  val.type = CAOS_FLOAT;
-  // TODO: This is a hack!
-  memcpy (&val.value, &f, sizeof(val.value));
-  return val;
-}
-
-CaosValue
 caos_value_bool_new (bool b)
 {
   CaosValue val = { CAOS_BOOL, b };
   return val;
-}
-
-bool
-caos_value_is_float (CaosValue val)
-{
-  return val.type == CAOS_FLOAT;
 }
 
 bool
@@ -151,17 +135,23 @@ caos_value_is_bool (CaosValue val)
   return val.type == CAOS_BOOL;
 }
 
-float
-caos_value_as_float (CaosValue val)
-{
-  float f;
-  // TODO: This is a hack!
-  memcpy (&f, &val.value, sizeof(float));
-  return f;
-}
-
 bool
 caos_value_as_bool (CaosValue val)
 {
   return val.value;
+}
+
+CaosValue
+dairy_value_from_token (CaosToken token)
+{
+  switch (token_get_type (token)) {
+  case CAOS_INT:
+    return caos_value_int_new (token_to_int (token));
+  case CAOS_STRING:
+    return caos_value_string_new (token_to_string (token));
+  case CAOS_FLOAT:
+    return caos_value_float_new (token_to_float (token));
+  default:
+    return caos_value_null();
+  }
 }

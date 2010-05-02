@@ -18,9 +18,19 @@ caos_value_string_new (char *s)
 }
 
 CaosValue
+caos_value_float_new (float f)
+{
+  CaosValue val;
+  val.type = CAOS_FLOAT;
+  val.value = *(intptr_t*)&f;
+  return val;
+}
+
+CaosValue
 caos_value_null()
 {
   CaosValue val;
+  val.type = CAOS_NULL;
   return val;
 }
 
@@ -36,6 +46,18 @@ caos_value_is_string (CaosValue val)
   return val.type == CAOS_STRING;
 }
 
+bool
+caos_value_is_float (CaosValue val)
+{
+  return val.type == CAOS_FLOAT;
+}
+
+bool
+caos_value_is_null (CaosValue val)
+{
+  return val.type == CAOS_NULL;
+}
+
 int
 caos_value_as_integer (CaosValue val)
 {
@@ -46,6 +68,12 @@ char*
 caos_value_as_string (CaosValue val)
 {
   return (char*)val.value;
+}
+
+float
+caos_value_as_float (CaosValue val)
+{
+  return *(float*)&val.value;
 }
 
 bool

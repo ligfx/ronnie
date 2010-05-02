@@ -22,6 +22,17 @@ void c_outs (CaosContext *context)
   printf ("%s\n", string);
 }
 
+void c_outv (CaosContext *context)
+{
+  CaosValue v = caos_arg_value (context);
+  if (caos_value_is_integer (v))
+    printf ("%i\n", caos_value_as_integer (v));
+  else if (caos_value_is_float (v))
+    printf ("%f\n", caos_value_as_float (v));
+  else
+    caos_set_error (context, (char*)"Expected decimal");
+}
+
 void c_new_simp (CaosContext *context)
 {
 
@@ -197,18 +208,22 @@ int main ()
     token_symbol ("eq"),
     token_int (1),
     token_symbol ("endi"),
+    token_symbol ("outv"),
+    token_float (5.4),
     token_eoi()
   };
 
   //
 
-  CaosRuntime *runtime = caos_runtime_new();
+  CaosRuntime *runtime = caos_runtime_new(dairy_value_from_token);
+  
   CaosContext *context = caos_context_new (runtime);
   
   caos_register_function (runtime, "bam!", c_bam, 0);
   caos_register_function (runtime, "doif", c_doif, 0);
   caos_register_function (runtime, "endi", c_endi, 0);
   caos_register_function (runtime, "outs", c_outs, 0);
+  caos_register_function (runtime, "outv", c_outv, 0);
   caos_register_function (runtime, "rand", 0, c_rand);
   caos_register_function (runtime, "repe", c_repe, 0);
   caos_register_function (runtime, "reps", c_reps, 0);

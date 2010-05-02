@@ -69,13 +69,17 @@ typedef struct CaosValue {
 
 RONNIE_PUBLIC CaosValue caos_value_int_new (int);
 RONNIE_PUBLIC CaosValue caos_value_string_new (char*);
+RONNIE_PUBLIC CaosValue caos_value_float_new (float);
 RONNIE_PUBLIC CaosValue caos_value_null ();
 
 RONNIE_PUBLIC bool caos_value_is_integer (CaosValue);
 RONNIE_PUBLIC bool caos_value_is_string (CaosValue);
+RONNIE_PUBLIC bool caos_value_is_float (CaosValue);
+RONNIE_PUBLIC bool caos_value_is_null (CaosValue);
 
 RONNIE_PUBLIC int caos_value_as_integer (CaosValue);
 RONNIE_PUBLIC char* caos_value_as_string (CaosValue);
+RONNIE_PUBLIC float caos_value_as_float (CaosValue);
 
 RONNIE_PUBLIC bool caos_value_equal (CaosValue, CaosValue);
 

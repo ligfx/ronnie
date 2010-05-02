@@ -12,10 +12,11 @@
 #define ERROR(msg) caos_set_error(context, (char*)msg)
 
 CaosRuntime*
-caos_runtime_new() {
+caos_runtime_new(caos_value_from_token_t value_from_token) {
   CaosRuntime *runtime = (CaosRuntime*) malloc (sizeof (*runtime)); {
     runtime->functions = std::map <char*, FunctionRef>();
     runtime->binomials = std::map <char*, std::map <char*, FunctionRef> >();
+    runtime->value_from_token = value_from_token;
   }
 
   return runtime;
@@ -131,7 +132,7 @@ bool
 caos_done (CaosContext *context)
 {
   return context->error ||
-        (context->script_iface.get (context->script).type == CAOS_EOI);
+         token_is_eoi (context->script_iface.get (context->script));
 }
 
 void caos_advance_to_next_symbol (CaosContext *context)
@@ -145,7 +146,7 @@ void caos_advance_to_next_symbol (CaosContext *context)
   } while (token_get_type (tok) != CAOS_SYMBOL);
 }
 
-CaosToken
+void
 caos_fast_forward (CaosContext *context, ...)
 {
   std::list <char*> strings;
@@ -164,20 +165,24 @@ caos_fast_forward (CaosContext *context, ...)
     if (caos_get_error (context)) {
       // The only error will be on EOI, therefore we can override it
       caos_override_error (context, (char*)"Couldn't fast forward to symbol");
-      return token_null();
+      return;
     }
-    char *str = token_to_string (sym);
+    char *str = token_to_symbol (sym);
 
     std::list<char*>::iterator it, end;
     for (it = strings.begin(), end = strings.end(); it != end; ++it) {
-      if (strcmp (str, *it) == 0)
-      {
-        return sym;
-      }
+      if (strcmp (str, *it) == 0) return;
     }
     caos_advance_to_next_symbol(context);
   }
 }
+
+/*
+
+What if we define a CAOS script as a stream of 'symbols' and 'others'?
+The runtime won't have to deal with 'others' at all
+
+*/
 
 CaosValue
 caos_arg_value (CaosContext *context)
@@ -188,29 +193,22 @@ caos_arg_value (CaosContext *context)
   CaosToken token = caos_current_token (context);
   if (caos_get_error (context)) return ret;
 
-  switch (token_get_type (token))
+  if (token_is_symbol (token))
   {
-    case CAOS_INT:
-      ret = caos_value_int_new (token_to_int (token));
-      break;
-    case CAOS_STRING:
-      ret = caos_value_string_new (token_to_string (token));
-      break;
-    case CAOS_SYMBOL:
       expr = caos_get_expression (context);
       if (expr)
         ret = expr (context);
       else {
-        printf ("%s\n", token_to_string (token));
+        printf ("%s\n", token_to_symbol (token));
         ERROR ("No such expression");
       }
-      break;
-    default:
-      ERROR ("Cannot convert token into value");
+  } else {
+      ret = context->runtime->value_from_token (token);
+      caos_advance (context);
+      if (caos_value_is_null (ret))
+        ERROR ("Cannot convert token into value");
   }
 
-  // caos_get_expression () advanced already
-  if (!expr) caos_advance(context);
   return ret;
 }
 
@@ -220,7 +218,7 @@ caos_arg_symbol (CaosContext *context)
   CaosToken tok = caos_current_token (context);
   caos_advance (context);
   if (!token_is_symbol (tok)) return NULL;
-  return token_to_string (tok);
+  return token_to_symbol (tok);
 }
 
 FunctionRef

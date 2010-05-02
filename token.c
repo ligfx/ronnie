@@ -15,6 +15,12 @@ CaosToken token_int (int i)
   return t;
 }
 
+CaosToken token_float (float f)
+{
+  CaosToken t = { CAOS_FLOAT, .value.f = f };
+  return t;
+}
+
 CaosToken token_string (char *s)
 {
   CaosToken t = { CAOS_STRING, .value.s = s };
@@ -35,7 +41,7 @@ CaosToken token_eoi()
 
 CaosToken token_null()
 {
-  static CaosToken t;
+  static CaosToken t = { CAOS_NULL };
   return t;
 }
 
@@ -50,7 +56,17 @@ CaosType token_get_type (CaosToken t)
 
 bool token_is_symbol (CaosToken t)
 {
-  return token_get_type (t) == CAOS_SYMBOL;
+  return t.type == CAOS_SYMBOL;
+}
+
+bool token_is_null (CaosToken t)
+{
+  return t.type == CAOS_NULL;
+}
+
+bool token_is_eoi (CaosToken t)
+{
+  return t.type == CAOS_EOI;
 }
 
 /*
@@ -63,6 +79,10 @@ char* token_to_string (CaosToken t) {
 
 int token_to_int (CaosToken t) {
   return t.value.i;
+}
+
+float token_to_float (CaosToken t) {
+  return t.value.f;
 }
 
 char* token_to_symbol (CaosToken t) {

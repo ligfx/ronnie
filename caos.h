@@ -16,6 +16,8 @@ typedef struct CaosContext CaosContext;
 typedef void (*caos_command_t) (CaosContext*);
 typedef CaosValue (*caos_expression_t) (CaosContext*);
 
+typedef CaosValue (*caos_value_from_token_t) (CaosToken);
+
 typedef void (*caos_script_advance_t) (void*);
 typedef CaosToken (*caos_script_get_t) (void*);
 typedef void (*caos_script_jump_t) (void*, int);
@@ -30,7 +32,7 @@ struct ICaosScript {
 
 // ~ Runtime ~
 
-RONNIE_PUBLIC CaosRuntime* caos_runtime_new();
+RONNIE_PUBLIC CaosRuntime* caos_runtime_new(caos_value_from_token_t);
 
 RONNIE_PUBLIC void caos_register_function
   (CaosRuntime*, char*, caos_command_t, caos_expression_t);
@@ -56,8 +58,8 @@ RONNIE_PUBLIC int caos_stack_peek (CaosContext*);
 // positions
 RONNIE_PUBLIC int caos_mark (CaosContext*);
 RONNIE_PUBLIC void caos_jump (CaosContext*, int);
-void caos_advance (CaosContext*);
-RONNIE_PUBLIC CaosToken caos_fast_forward (CaosContext*, ...);
+RONNIE_PUBLIC void caos_advance (CaosContext*);
+RONNIE_PUBLIC void caos_fast_forward (CaosContext*, ...);
 
 // arguments
 RONNIE_PUBLIC CaosValue caos_arg_value (CaosContext*);
