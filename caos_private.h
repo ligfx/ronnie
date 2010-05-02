@@ -26,7 +26,6 @@ struct CaosContext {
   std::stack<int> *stack;
 };
 
-CaosRuntime* caos_get_runtime (CaosContext*);
 void caos_advance_to_next_symbol (CaosContext*);
 void caos_override_error (CaosContext*, char*);
 

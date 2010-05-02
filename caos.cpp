@@ -100,7 +100,7 @@ caos_stack_peek (CaosContext *context)
 }
 
 CaosToken
-caos_get_token (CaosContext *context)
+caos_current_token (CaosContext *context)
 {
   if (caos_done (context)) {
     ERROR ("Expected token, got EOI");
@@ -140,7 +140,7 @@ void caos_advance_to_next_symbol (CaosContext *context)
   CaosToken tok;
   do {
     caos_advance (context);
-    tok = caos_get_token (context);
+    tok = caos_current_token (context);
     if (caos_get_error (context)) return;
   } while (token_get_type (tok) != CAOS_SYMBOL);
 }
@@ -160,13 +160,13 @@ caos_fast_forward (CaosContext *context, ...)
   }
 
   while (true) {
-    CaosToken sym = caos_get_token(context);
+    CaosToken sym = caos_current_token(context);
     if (caos_get_error (context)) {
       // The only error will be on EOI, therefore we can override it
       caos_override_error (context, (char*)"Couldn't fast forward to symbol");
       return token_null();
     }
-    char *str = token_as_string (sym);
+    char *str = token_to_string (sym);
 
     std::list<char*>::iterator it, end;
     for (it = strings.begin(), end = strings.end(); it != end; ++it) {
@@ -185,23 +185,23 @@ caos_arg_value (CaosContext *context)
   CaosValue ret = caos_value_null();
   caos_expression_t expr = NULL;
 
-  CaosToken token = caos_get_token (context);
+  CaosToken token = caos_current_token (context);
   if (caos_get_error (context)) return ret;
 
   switch (token_get_type (token))
   {
     case CAOS_INT:
-      ret = caos_value_int_new (token_as_int (token));
+      ret = caos_value_int_new (token_to_int (token));
       break;
     case CAOS_STRING:
-      ret = caos_value_string_new (token_as_string (token));
+      ret = caos_value_string_new (token_to_string (token));
       break;
     case CAOS_SYMBOL:
       expr = caos_get_expression (context);
       if (expr)
         ret = expr (context);
       else {
-        printf ("%s\n", token_as_string (token));
+        printf ("%s\n", token_to_string (token));
         ERROR ("No such expression");
       }
       break;
@@ -214,11 +214,19 @@ caos_arg_value (CaosContext *context)
   return ret;
 }
 
+char*
+caos_arg_symbol (CaosContext *context)
+{
+  CaosToken tok = caos_current_token (context);
+  caos_advance (context);
+  if (!token_is_symbol (tok)) return NULL;
+  return token_to_string (tok);
+}
+
 FunctionRef
 caos_get_function (CaosContext *context)
 {
   static FunctionRef null_func = { NULL, NULL };
-  CaosToken tok;
   char *label;
 
   label = caos_arg_symbol (context);
@@ -285,10 +293,4 @@ void*
 caos_user_data (CaosContext *context)
 {
   return context->user_data;
-}
-
-CaosRuntime*
-caos_get_runtime (CaosContext *context)
-{
-  return context->runtime;
 }

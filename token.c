@@ -9,19 +9,19 @@
 */
 
 
-CaosToken token_int_new (int i)
+CaosToken token_int (int i)
 {
   CaosToken t = { CAOS_INT, .value.i = i };
   return t;
 }
 
-CaosToken token_string_new (char *s)
+CaosToken token_string (char *s)
 {
   CaosToken t = { CAOS_STRING, .value.s = s };
   return t;
 }
 
-CaosToken token_symbol_new (char *s)
+CaosToken token_symbol (char *s)
 {
   CaosToken t = { CAOS_SYMBOL, .value.s = s };
   return t;
@@ -57,15 +57,15 @@ bool token_is_symbol (CaosToken t)
    Conversions
 */
 
-char* token_as_string (CaosToken t) {
+char* token_to_string (CaosToken t) {
   return t.value.s;
 }
 
-int token_as_int (CaosToken t) {
+int token_to_int (CaosToken t) {
   return t.value.i;
 }
 
-char* token_as_symbol (CaosToken t) {
+char* token_to_symbol (CaosToken t) {
   return t.value.s;
 }
 

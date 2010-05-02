@@ -1,5 +1,5 @@
-CC=gcc
-CFLAGS=-fvisibility=hidden -fpic
+CC=clang
+CFLAGS +=-fvisibility=hidden -fpic -ansi -Wall -Wno-comment -Werror -Wno-error=unused-variable
 
 main: main.o libronnie.so
 	${CC} -g $^ -lstdc++ -L. -lronnie -o $@ -Wl,-rpath,.

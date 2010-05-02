@@ -72,12 +72,12 @@ caos_arg_bool (CaosContext *context)
   while (true) {
     {
       if (caos_done (context)) break;
-      CaosToken next = caos_get_token (context);
+      CaosToken next = caos_current_token (context);
       if (!token_is_symbol (next)) break;
 
-      logic_func = logical_from_symbol (token_as_symbol (next));
+      logic_func = logical_from_symbol (token_to_symbol (next));
       if (!logic_func) break;
-      caos_advance (context); // Because we didn't call arg_*!
+      caos_advance (context); // Because current_token does not advance!
     }
 
     left = caos_arg_value (context);
@@ -120,15 +120,6 @@ caos_arg_string (CaosContext *context)
 
   printf ("[DEBUG] String '%s'\n", caos_value_as_string (next));
   return caos_value_as_string (next);
-}
-
-char*
-caos_arg_symbol (CaosContext *context)
-{
-  CaosToken tok = caos_get_token (context);
-  caos_advance (context);
-  if (!token_is_symbol (tok)) return (char*) "[null]";
-  return token_as_string (tok);
 }
 
 CaosValue
