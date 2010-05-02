@@ -308,12 +308,36 @@ CaosValue caos_lexer_lex (CaosLexer *l) {
     l->p--;
     return caos_value_symbol (lex_string (l, 0, issymchar, (char(*)(char))tolower));
   }
-  else if (c == '"') {
-    char *s = lex_string (l, 0, isstrchar, NULL);
+
+  char *s;
+  switch (c) {
+  case '"':
+    s = lex_string (l, 0, isstrchar, NULL);
     l->p++; // skip endquote
     return caos_value_string (s);
+  case '=':
+    return caos_value_symbol ("eq");
+  case '<':
+    switch (*l->p) {
+    case '>':
+      l->p++;
+      return caos_value_symbol ("ne");
+    case '=':
+      l->p++;
+      return caos_value_symbol ("le");
+    default:
+      return caos_value_symbol ("lt");
+    }
+  case '>':
+    if (*l->p == '=') {
+      l->p++;
+      return caos_value_symbol ("ge");
+    } else {
+      return caos_value_symbol ("gt");
+    }
+  default:
+    printf ("Error! '%c'\n", c);
+    abort();
+    return caos_value_null();
   }
-  printf ("Error! '%c'\n", c);
-  abort();
-  return caos_value_null();
 }
