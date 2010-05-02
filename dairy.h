@@ -22,6 +22,4 @@ RONNIE_PUBLIC CaosValue caos_value_bool_new (bool);
 RONNIE_PUBLIC bool caos_value_is_bool (CaosValue);
 RONNIE_PUBLIC bool caos_value_as_bool (CaosValue);
 
-RONNIE_PUBLIC CaosValue dairy_value_from_token (CaosToken);
-
 #endif // CAOS_DAIRY_H

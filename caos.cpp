@@ -12,11 +12,10 @@
 #define ERROR(msg) caos_set_error(context, (char*)msg)
 
 CaosRuntime*
-caos_runtime_new(caos_value_from_token_t value_from_token) {
+caos_runtime_new() {
   CaosRuntime *runtime = (CaosRuntime*) malloc (sizeof (*runtime)); {
     runtime->functions = std::map <char*, FunctionRef>();
     runtime->binomials = std::map <char*, std::map <char*, FunctionRef> >();
-    runtime->value_from_token = value_from_token;
   }
 
   return runtime;
@@ -100,12 +99,12 @@ caos_stack_peek (CaosContext *context)
   return context->stack->top();
 }
 
-CaosToken
+CaosValue
 caos_current_token (CaosContext *context)
 {
   if (caos_done (context)) {
     ERROR ("Expected token, got EOI");
-    return token_null();
+    return caos_value_null();
   }
   return context->script_iface.get (context->script);
 }
@@ -132,18 +131,18 @@ bool
 caos_done (CaosContext *context)
 {
   return context->error ||
-         token_is_eoi (context->script_iface.get (context->script));
+         caos_value_is_eoi (context->script_iface.get (context->script));
 }
 
 void caos_advance_to_next_symbol (CaosContext *context)
 {
   if (caos_done(context)) return;
-  CaosToken tok;
+  CaosValue tok;
   do {
     caos_advance (context);
     tok = caos_current_token (context);
     if (caos_get_error (context)) return;
-  } while (token_get_type (tok) != CAOS_SYMBOL);
+  } while (!caos_value_is_symbol (tok));
 }
 
 void
@@ -161,13 +160,13 @@ caos_fast_forward (CaosContext *context, ...)
   }
 
   while (true) {
-    CaosToken sym = caos_current_token(context);
+    CaosValue sym = caos_current_token(context);
     if (caos_get_error (context)) {
       // The only error will be on EOI, therefore we can override it
       caos_override_error (context, (char*)"Couldn't fast forward to symbol");
       return;
     }
-    char *str = token_to_symbol (sym);
+    char *str = caos_value_to_symbol (sym);
 
     std::list<char*>::iterator it, end;
     for (it = strings.begin(), end = strings.end(); it != end; ++it) {
@@ -190,23 +189,21 @@ caos_arg_value (CaosContext *context)
   CaosValue ret = caos_value_null();
   caos_expression_t expr = NULL;
 
-  CaosToken token = caos_current_token (context);
+  CaosValue token = caos_current_token (context);
   if (caos_get_error (context)) return ret;
 
-  if (token_is_symbol (token))
+  if (caos_value_is_symbol (token))
   {
       expr = caos_get_expression (context);
       if (expr)
         ret = expr (context);
       else {
-        printf ("%s\n", token_to_symbol (token));
+        printf ("%s\n", caos_value_to_symbol (token));
         ERROR ("No such expression");
       }
   } else {
-      ret = context->runtime->value_from_token (token);
+      ret = token;
       caos_advance (context);
-      if (caos_value_is_null (ret))
-        ERROR ("Cannot convert token into value");
   }
 
   return ret;
@@ -215,10 +212,10 @@ caos_arg_value (CaosContext *context)
 char*
 caos_arg_symbol (CaosContext *context)
 {
-  CaosToken tok = caos_current_token (context);
+  CaosValue tok = caos_current_token (context);
   caos_advance (context);
-  if (!token_is_symbol (tok)) return NULL;
-  return token_to_symbol (tok);
+  if (!caos_value_is_symbol (tok)) return NULL;
+  return caos_value_to_symbol (tok);
 }
 
 FunctionRef

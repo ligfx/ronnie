@@ -26,9 +26,9 @@ void c_outv (CaosContext *context)
 {
   CaosValue v = caos_arg_value (context);
   if (caos_value_is_integer (v))
-    printf ("%i\n", caos_value_as_integer (v));
+    printf ("%i\n", caos_value_to_integer (v));
   else if (caos_value_is_float (v))
-    printf ("%f\n", caos_value_as_float (v));
+    printf ("%f\n", caos_value_to_float (v));
   else
     caos_set_error (context, (char*)"Expected decimal");
 }
@@ -57,7 +57,7 @@ CaosValue c_rand (CaosContext *context)
   if (caos_get_error (context)) return caos_value_null();
 
   int result = rand() % (right - left) + left;
-  return caos_value_int_new (result);
+  return caos_value_int (result);
 }
 
 void
@@ -135,15 +135,15 @@ c_endi (CaosContext *context) {
 }
 
 struct Script {
-  CaosToken *script;
-  CaosToken *ip;
+  CaosValue *script;
+  CaosValue *ip;
 };
 
 void script_advance (struct Script *script) {
   script->ip++;
 }
 
-CaosToken script_get (struct Script *script) {
+CaosValue script_get (struct Script *script) {
   return *script->ip;
 }
 
@@ -161,61 +161,61 @@ int main ()
   char *error;
   srand (time (NULL));
 
-  CaosToken script[] = {
-    token_symbol ("reps"),
-    token_int (5),
-    token_symbol ("bam!"),
-    token_symbol ("new:"),
-    token_symbol ("simp"),
-    token_int (2),
-    token_int (4),
-    token_int (50000),
-    token_string ("basicplant"),
-    token_int (3),
-    token_int (0),
-    token_symbol ("rand"),
-    token_int (200),
-    token_int (5000),
-    token_symbol ("repe"),
-    token_symbol ("bam!"),
-    token_symbol ("doif"),
-    token_int (0),
-    token_symbol ("eq"),
-    token_int (1),
-    token_symbol ("outs"),
-    token_string ("This should be skipped right now"),
-    token_symbol ("endi"),
-    token_symbol ("doif"),
-    token_int (5),
-    token_symbol ("eq"),
-    token_int (5),
-    token_symbol ("and"),
-    token_int (1),
-    token_symbol ("ne"),
-    token_int (2),
-    token_symbol ("or"),
-    token_int (6),
-    token_symbol ("eq"),
-    token_int (7),
-    token_symbol ("outs"),
-    token_string ("This, on the other hand, should be output"),
-    token_symbol ("endi"),
-    token_symbol ("bam!"),
-    token_symbol ("outs"),
-    token_string ("Test OUTS"),
-    token_symbol ("doif"),
-    token_int (0),
-    token_symbol ("eq"),
-    token_int (1),
-    token_symbol ("endi"),
-    token_symbol ("outv"),
-    token_float (5.4),
-    token_eoi()
+  CaosValue script[] = {
+    caos_value_symbol ("reps"),
+    caos_value_int (5),
+    caos_value_symbol ("bam!"),
+    caos_value_symbol ("new:"),
+    caos_value_symbol ("simp"),
+    caos_value_int (2),
+    caos_value_int (4),
+    caos_value_int (50000),
+    caos_value_string ("basicplant"),
+    caos_value_int (3),
+    caos_value_int (0),
+    caos_value_symbol ("rand"),
+    caos_value_int (200),
+    caos_value_int (5000),
+    caos_value_symbol ("repe"),
+    caos_value_symbol ("bam!"),
+    caos_value_symbol ("doif"),
+    caos_value_int (0),
+    caos_value_symbol ("eq"),
+    caos_value_int (1),
+    caos_value_symbol ("outs"),
+    caos_value_string ("This should be skipped right now"),
+    caos_value_symbol ("endi"),
+    caos_value_symbol ("doif"),
+    caos_value_int (5),
+    caos_value_symbol ("eq"),
+    caos_value_int (5),
+    caos_value_symbol ("and"),
+    caos_value_int (1),
+    caos_value_symbol ("ne"),
+    caos_value_int (2),
+    caos_value_symbol ("or"),
+    caos_value_int (6),
+    caos_value_symbol ("eq"),
+    caos_value_int (7),
+    caos_value_symbol ("outs"),
+    caos_value_string ("This, on the other hand, should be output"),
+    caos_value_symbol ("endi"),
+    caos_value_symbol ("bam!"),
+    caos_value_symbol ("outs"),
+    caos_value_string ("Test OUTS"),
+    caos_value_symbol ("doif"),
+    caos_value_int (0),
+    caos_value_symbol ("eq"),
+    caos_value_int (1),
+    caos_value_symbol ("endi"),
+    caos_value_symbol ("outv"),
+    caos_value_float (5.4),
+    caos_value_eoi()
   };
 
   //
 
-  CaosRuntime *runtime = caos_runtime_new(dairy_value_from_token);
+  CaosRuntime *runtime = caos_runtime_new();
   
   CaosContext *context = caos_context_new (runtime);
   

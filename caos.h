@@ -2,8 +2,6 @@
 #define CAOS_H
 
 #include "common.h"
-#include "token.h"
-#include "type.h"
 #include "value.h"
 
 #ifdef __cplusplus
@@ -16,10 +14,8 @@ typedef struct CaosContext CaosContext;
 typedef void (*caos_command_t) (CaosContext*);
 typedef CaosValue (*caos_expression_t) (CaosContext*);
 
-typedef CaosValue (*caos_value_from_token_t) (CaosToken);
-
 typedef void (*caos_script_advance_t) (void*);
-typedef CaosToken (*caos_script_get_t) (void*);
+typedef CaosValue (*caos_script_get_t) (void*);
 typedef void (*caos_script_jump_t) (void*, int);
 typedef int (*caos_script_mark_t) (void*);
 
@@ -32,7 +28,7 @@ struct ICaosScript {
 
 // ~ Runtime ~
 
-RONNIE_PUBLIC CaosRuntime* caos_runtime_new(caos_value_from_token_t);
+RONNIE_PUBLIC CaosRuntime* caos_runtime_new();
 
 RONNIE_PUBLIC void caos_register_function
   (CaosRuntime*, char*, caos_command_t, caos_expression_t);
@@ -64,7 +60,7 @@ RONNIE_PUBLIC void caos_fast_forward (CaosContext*, ...);
 // arguments
 RONNIE_PUBLIC CaosValue caos_arg_value (CaosContext*);
 RONNIE_PUBLIC char* caos_arg_symbol (CaosContext*);
-RONNIE_PUBLIC CaosToken caos_current_token (CaosContext*);
+RONNIE_PUBLIC CaosValue caos_current_token (CaosContext*);
 
 // exceptions
 RONNIE_PUBLIC char* caos_get_error (CaosContext*);

@@ -72,10 +72,10 @@ caos_arg_bool (CaosContext *context)
   while (true) {
     {
       if (caos_done (context)) break;
-      CaosToken next = caos_current_token (context);
-      if (!token_is_symbol (next)) break;
+      CaosValue next = caos_current_token (context);
+      if (!caos_value_is_symbol (next)) break;
 
-      logic_func = logical_from_symbol (token_to_symbol (next));
+      logic_func = logical_from_symbol (caos_value_to_symbol (next));
       if (!logic_func) break;
       caos_advance (context); // Because current_token does not advance!
     }
@@ -105,8 +105,8 @@ caos_arg_int (CaosContext *context)
     return -42;
   }
 
-  printf ("[DEBUG] Int '%i'\n", caos_value_as_integer (next));
-  return caos_value_as_integer (next);
+  printf ("[DEBUG] Int '%i'\n", caos_value_to_integer (next));
+  return caos_value_to_integer (next);
 }
 
 char*
@@ -118,8 +118,8 @@ caos_arg_string (CaosContext *context)
     return NULL;
   }
 
-  printf ("[DEBUG] String '%s'\n", caos_value_as_string (next));
-  return caos_value_as_string (next);
+  printf ("[DEBUG] String '%s'\n", caos_value_to_string (next));
+  return caos_value_to_string (next);
 }
 
 CaosValue
@@ -139,19 +139,4 @@ bool
 caos_value_as_bool (CaosValue val)
 {
   return val.value;
-}
-
-CaosValue
-dairy_value_from_token (CaosToken token)
-{
-  switch (token_get_type (token)) {
-  case CAOS_INT:
-    return caos_value_int_new (token_to_int (token));
-  case CAOS_STRING:
-    return caos_value_string_new (token_to_string (token));
-  case CAOS_FLOAT:
-    return caos_value_float_new (token_to_float (token));
-  default:
-    return caos_value_null();
-  }
 }
