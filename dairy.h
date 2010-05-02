@@ -7,6 +7,12 @@
 
 #include <stdint.h>
 
+enum DairyType {
+  CAOS_STRING = 3,
+  CAOS_INT,
+  CAOS_FLOAT,
+};
+
 typedef bool (*caos_comparison_t) (CaosValue, CaosValue);
 typedef bool (*caos_logical_t) (bool, bool);
 
@@ -14,12 +20,23 @@ RONNIE_PUBLIC caos_comparison_t comparison_from_symbol (char *sym);
 
 RONNIE_PUBLIC caos_logical_t logical_from_symbol (char*);
 
-RONNIE_PUBLIC bool caos_arg_bool (CaosContext*);
-RONNIE_PUBLIC int caos_arg_int (CaosContext*);
+RONNIE_PUBLIC bool   caos_arg_bool (CaosContext*);
+RONNIE_PUBLIC float caos_arg_float (CaosContext*);
+RONNIE_PUBLIC int   caos_arg_int (CaosContext*);
 RONNIE_PUBLIC char* caos_arg_string (CaosContext*);
 
-RONNIE_PUBLIC CaosValue caos_value_bool_new (bool);
-RONNIE_PUBLIC bool caos_value_is_bool (CaosValue);
-RONNIE_PUBLIC bool caos_value_as_bool (CaosValue);
+RONNIE_PUBLIC CaosValue caos_value_float (float);
+RONNIE_PUBLIC CaosValue caos_value_int (int);
+RONNIE_PUBLIC CaosValue caos_value_string (char*);
+
+RONNIE_PUBLIC bool caos_value_is_float (CaosValue);
+RONNIE_PUBLIC bool caos_value_is_integer (CaosValue);
+RONNIE_PUBLIC bool caos_value_is_string (CaosValue);
+
+RONNIE_PUBLIC float caos_value_to_float (CaosValue);
+RONNIE_PUBLIC int   caos_value_to_integer (CaosValue);
+RONNIE_PUBLIC char* caos_value_to_string (CaosValue);
+
+RONNIE_PUBLIC bool caos_value_equal (CaosValue, CaosValue);
 
 #endif // CAOS_DAIRY_H

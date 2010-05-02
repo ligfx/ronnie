@@ -96,6 +96,19 @@ caos_arg_bool (CaosContext *context)
   return ret;
 }
 
+float
+caos_arg_float (CaosContext *context)
+{
+  CaosValue next = caos_arg_value (context);
+  if (!caos_value_is_float (next)) {
+    ERROR ("Expected float");
+    return -42;
+  }
+
+  printf ("[DEBUG] Float '%f'\n", caos_value_to_float (next));
+  return caos_value_to_float (next);
+}
+
 int
 caos_arg_int (CaosContext *context)
 {
@@ -123,20 +136,74 @@ caos_arg_string (CaosContext *context)
 }
 
 CaosValue
-caos_value_bool_new (bool b)
+caos_value_int (int i)
 {
-  CaosValue val = { CAOS_BOOL, b };
+  CaosValue val = { CAOS_INT, i };
+  return val;
+}
+
+CaosValue
+caos_value_string (char *s)
+{
+  CaosValue val = { CAOS_STRING, (intptr_t)s };
+  return val;
+}
+
+CaosValue
+caos_value_float (float f)
+{
+  CaosValue val;
+  val.type = CAOS_FLOAT;
+  val.value = *(intptr_t*)&f;
   return val;
 }
 
 bool
-caos_value_is_bool (CaosValue val)
+caos_value_is_integer (CaosValue val)
 {
-  return val.type == CAOS_BOOL;
+  return val.type == CAOS_INT;
 }
 
 bool
-caos_value_as_bool (CaosValue val)
+caos_value_is_string (CaosValue val)
+{
+  return val.type == CAOS_STRING;
+}
+
+bool
+caos_value_is_float (CaosValue val)
+{
+  return val.type == CAOS_FLOAT;
+}
+
+int
+caos_value_to_integer (CaosValue val)
 {
   return val.value;
+}
+
+char*
+caos_value_to_string (CaosValue val)
+{
+  return (char*)val.value;
+}
+
+float
+caos_value_to_float (CaosValue val)
+{
+  return *(float*)&val.value;
+}
+
+bool
+caos_value_equal (CaosValue left, CaosValue right)
+{
+  // TODO: Really, everything should just be numbers
+  //   But we're using string pointers because it's easier right now
+  if (caos_value_is_string (left) && caos_value_is_string (right)) {
+    return strcmp (caos_value_to_string (left), caos_value_to_string (right)) == 0;
+  }
+  if (left.type != right.type) {
+    return false;
+  }
+  return left.value == right.value;
 }

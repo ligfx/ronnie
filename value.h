@@ -64,15 +64,11 @@ extern "C" {
     We can easily quark these, I think
 */
 
-typedef enum CaosType {
-  CAOS_STRING,
-  CAOS_INT,
-  CAOS_BOOL,
-  CAOS_SYMBOL,
-  CAOS_FLOAT,
-  CAOS_EOI,
-  CAOS_NULL
-} CaosType;
+// Enums are nice, but not extendable
+typedef int CaosType;
+static CaosType CAOS_NULL = 0;
+static CaosType CAOS_EOI = 1;
+static CaosType CAOS_SYMBOL = 2;
 
 typedef struct CaosValue {
   CaosType type;
@@ -81,24 +77,13 @@ typedef struct CaosValue {
 
 RONNIE_PUBLIC CaosValue caos_value_symbol (char*);
 RONNIE_PUBLIC CaosValue caos_value_eoi ();
-RONNIE_PUBLIC CaosValue caos_value_int (int);
-RONNIE_PUBLIC CaosValue caos_value_string (char*);
-RONNIE_PUBLIC CaosValue caos_value_float (float);
 RONNIE_PUBLIC CaosValue caos_value_null ();
 
-RONNIE_PUBLIC bool caos_value_is_integer (CaosValue);
-RONNIE_PUBLIC bool caos_value_is_string (CaosValue);
-RONNIE_PUBLIC bool caos_value_is_float (CaosValue);
 RONNIE_PUBLIC bool caos_value_is_symbol (CaosValue);
 RONNIE_PUBLIC bool caos_value_is_eoi (CaosValue);
 RONNIE_PUBLIC bool caos_value_is_null (CaosValue);
 
 RONNIE_PUBLIC char* caos_value_to_symbol (CaosValue);
-RONNIE_PUBLIC int caos_value_to_integer (CaosValue);
-RONNIE_PUBLIC char* caos_value_to_string (CaosValue);
-RONNIE_PUBLIC float caos_value_to_float (CaosValue);
-
-RONNIE_PUBLIC bool caos_value_equal (CaosValue, CaosValue);
 
 #ifdef __cplusplus
 }
