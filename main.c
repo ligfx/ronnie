@@ -5,8 +5,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "caos.h"
-#include "dairy.h"
+#include <ronnie/ronnie.h>
 
 void c_bam (CaosContext *context)
 {

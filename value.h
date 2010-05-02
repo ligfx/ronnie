@@ -75,15 +75,15 @@ typedef struct CaosValue {
   intptr_t value;
 } CaosValue;
 
-RONNIE_PUBLIC CaosValue caos_value_symbol (char*);
-RONNIE_PUBLIC CaosValue caos_value_eoi ();
-RONNIE_PUBLIC CaosValue caos_value_null ();
+RONNIE_API CaosValue caos_value_symbol (char*);
+RONNIE_API CaosValue caos_value_eoi ();
+RONNIE_API CaosValue caos_value_null ();
 
-RONNIE_PUBLIC bool caos_value_is_symbol (CaosValue);
-RONNIE_PUBLIC bool caos_value_is_eoi (CaosValue);
-RONNIE_PUBLIC bool caos_value_is_null (CaosValue);
+RONNIE_API bool caos_value_is_symbol (CaosValue);
+RONNIE_API bool caos_value_is_eoi (CaosValue);
+RONNIE_API bool caos_value_is_null (CaosValue);
 
-RONNIE_PUBLIC char* caos_value_to_symbol (CaosValue);
+RONNIE_API char* caos_value_to_symbol (CaosValue);
 
 #ifdef __cplusplus
 }

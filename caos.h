@@ -28,46 +28,46 @@ struct ICaosScript {
 
 // ~ Runtime ~
 
-RONNIE_PUBLIC CaosRuntime* caos_runtime_new();
+RONNIE_API CaosRuntime* caos_runtime_new();
 
-RONNIE_PUBLIC void caos_register_function
+RONNIE_API void caos_register_function
   (CaosRuntime*, char*, caos_command_t, caos_expression_t);
-RONNIE_PUBLIC void caos_register_binomial_function
+RONNIE_API void caos_register_binomial_function
   (CaosRuntime*, char*, char*, caos_command_t, caos_expression_t);      
 
 // ~ Context ~
 
-RONNIE_PUBLIC CaosContext* caos_context_new(CaosRuntime*);
+RONNIE_API CaosContext* caos_context_new(CaosRuntime*);
 
 // main thread
-RONNIE_PUBLIC void caos_set_script (CaosContext*, void*, struct ICaosScript);
-RONNIE_PUBLIC void caos_tick (CaosContext*, void *user_data);
-RONNIE_PUBLIC bool caos_done (CaosContext*);
+RONNIE_API void caos_set_script (CaosContext*, void*, struct ICaosScript);
+RONNIE_API void caos_tick (CaosContext*, void *user_data);
+RONNIE_API bool caos_done (CaosContext*);
 
 // caos functions
 
 // stack
-RONNIE_PUBLIC void caos_stack_push (CaosContext*, int);
-RONNIE_PUBLIC int caos_stack_pop (CaosContext*);
-RONNIE_PUBLIC int caos_stack_peek (CaosContext*);
+RONNIE_API void caos_stack_push (CaosContext*, int);
+RONNIE_API int caos_stack_pop (CaosContext*);
+RONNIE_API int caos_stack_peek (CaosContext*);
 
 // positions
-RONNIE_PUBLIC int caos_mark (CaosContext*);
-RONNIE_PUBLIC void caos_jump (CaosContext*, int);
-RONNIE_PUBLIC void caos_advance (CaosContext*);
-RONNIE_PUBLIC void caos_fast_forward (CaosContext*, ...);
+RONNIE_API int caos_mark (CaosContext*);
+RONNIE_API void caos_jump (CaosContext*, int);
+RONNIE_API void caos_advance (CaosContext*);
+RONNIE_API void caos_fast_forward (CaosContext*, ...);
 
 // arguments
-RONNIE_PUBLIC CaosValue caos_arg_value (CaosContext*);
-RONNIE_PUBLIC char* caos_arg_symbol (CaosContext*);
-RONNIE_PUBLIC CaosValue caos_current_token (CaosContext*);
+RONNIE_API CaosValue caos_arg_value (CaosContext*);
+RONNIE_API char* caos_arg_symbol (CaosContext*);
+RONNIE_API CaosValue caos_current_token (CaosContext*);
 
 // exceptions
-RONNIE_PUBLIC char* caos_get_error (CaosContext*);
-RONNIE_PUBLIC void caos_set_error (CaosContext*, char*);
+RONNIE_API char* caos_get_error (CaosContext*);
+RONNIE_API void caos_set_error (CaosContext*, char*);
 
 // user
-RONNIE_PUBLIC void* caos_user_data (CaosContext*);
+RONNIE_API void* caos_user_data (CaosContext*);
 
 #ifdef __cplusplus
 }
