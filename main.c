@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,6 +7,7 @@
 
 #include "caos.h"
 #include "dairy.h"
+#include "lex.h"
 
 void c_bam (CaosContext *context)
 {
@@ -76,7 +78,7 @@ c_repe (CaosContext *context) {
   // Stack [pos, loops_left]
   int loops_left = caos_stack_pop (context) - 1;
   if (loops_left == 0) { // Done!
-    int pos = caos_stack_pop (context);
+    (void) caos_stack_pop (context);
     // Stack []
   } else {
     int pos = caos_stack_peek (context);
@@ -229,18 +231,51 @@ int main ()
   caos_register_function (runtime, "reps", c_reps, 0);
   caos_register_binomial_function (runtime, "new:", "simp", c_new_simp, 0);
 
-  struct Script s = { script, script };
-  struct ICaosScript i = {
+  struct ICaosScript iface = {
     (caos_script_advance_t) script_advance, 
     (caos_script_get_t)     script_get,
     (caos_script_jump_t)    script_jump,
     (caos_script_mark_t)    script_mark
   };
 
-  caos_set_script (context, &s, i);
+  {
+    struct Script s = { script, script };
 
-  while (!caos_done (context)) {
-    caos_tick (context, NULL);
-    if ((error = caos_get_error (context))) printf ("[ERROR] %s\n", error);
+    caos_set_script (context, &s, iface);
+
+    while (!caos_done (context)) {
+      caos_tick (context, NULL);
+      if ((error = caos_get_error (context))) printf ("[ERROR] %s\n", error);
+    }
+  }
+
+  {
+    CaosLexer lexer = caos_lexer ("nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 eq 0 outs \"hello, world!\n\" endi");
+
+    int i, m;
+    i = m = 0;
+    CaosValue *lexed_script = 0;
+
+    while (true) {
+      CaosValue val = caos_lexer_lex(&lexer);
+      if (i == m) {
+        m = m ? m << 1 : 1;
+        lexed_script = realloc (lexed_script, sizeof(CaosValue) * m);
+        assert (lexed_script);
+      }
+      lexed_script[i++] = val;
+
+      if (caos_value_is_eoi (val)) break;
+    }
+
+    struct Script s = { lexed_script, lexed_script };
+
+    // TODO: caos_reset
+    caos_set_script (context, &s, iface);
+
+    while (!caos_done (context)) {
+      caos_tick (context, NULL);
+      if ((error = caos_get_error (context))) printf ("[ERROR] %s\n", error);
+    }
   }
 }

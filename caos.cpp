@@ -14,8 +14,8 @@
 CaosRuntime*
 caos_runtime_new() {
   CaosRuntime *runtime = (CaosRuntime*) malloc (sizeof (*runtime)); {
-    runtime->functions = std::map <char*, FunctionRef>();
-    runtime->binomials = std::map <char*, std::map <char*, FunctionRef> >();
+    runtime->functions = std::map <std::string, FunctionRef>();
+    runtime->binomials = std::map <std::string, std::map <std::string, FunctionRef> >();
   }
 
   return runtime;
@@ -228,18 +228,19 @@ caos_get_function (CaosContext *context)
   if (!label) return null_func;
   printf ("[DEBUG] Function '%s'\n", label);
 
-  std::map<char*, FunctionRef> &functions
+  std::map<std::string, FunctionRef> &functions
     = context->runtime->functions;
   if (functions.count (label))
   {
     return functions[label];
   }
 
-  std::map<char*, std::map<char*, FunctionRef> > &binomials
+  std::map<std::string, std::map<std::string, FunctionRef> > &binomials
     = context->runtime->binomials;
+  printf ("%s\n", label);
   if (binomials.count (label))
   {
-      std::map<char*, FunctionRef> &second
+      std::map<std::string, FunctionRef> &second
         = binomials [label];
 
       label = caos_arg_symbol (context);
@@ -249,7 +250,7 @@ caos_get_function (CaosContext *context)
       if (second.count (label))
         return second [label];
   }
-  
+
   return null_func;
 }
 

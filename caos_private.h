@@ -5,6 +5,7 @@
 
 #include <map>
 #include <stack>
+#include <string>
 
 
 typedef struct FunctionRef {
@@ -13,8 +14,8 @@ typedef struct FunctionRef {
 } FunctionRef;
 
 struct CaosRuntime {
-  std::map <char*, FunctionRef> functions;
-  std::map <char*, std::map <char*, FunctionRef> > binomials;
+  std::map <std::string, FunctionRef> functions;
+  std::map <std::string, std::map <std::string, FunctionRef> > binomials;
 };
 
 struct CaosContext {
