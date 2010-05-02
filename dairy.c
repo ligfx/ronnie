@@ -1,11 +1,16 @@
 #include "caos.h"
 #include "dairy.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #define ERROR(msg) caos_set_error(context, (char*)msg)
+
+// ~ arg_bool ~
+
+// Comparisons
 
 bool c_and (bool left, bool right)
 {
@@ -30,6 +35,9 @@ bool c_ne (CaosValue left, CaosValue right)
 #ifndef streq
 #define streq(left, right) (strcmp(left, right) == 0)
 #endif
+
+typedef bool (*caos_comparison_t) (CaosValue, CaosValue);
+typedef bool (*caos_logical_t) (bool, bool);
 
 caos_comparison_t
 comparison_from_symbol (char *sym)
@@ -96,6 +104,8 @@ caos_arg_bool (CaosContext *context)
   return ret;
 }
 
+// ~ typed arg functions ~
+
 float
 caos_arg_float (CaosContext *context)
 {
@@ -134,6 +144,14 @@ caos_arg_string (CaosContext *context)
   printf ("[DEBUG] String '%s'\n", caos_value_to_string (next));
   return caos_value_to_string (next);
 }
+
+// ~ extra value types ~
+
+enum DairyType {
+  CAOS_STRING = 50,
+  CAOS_INT,
+  CAOS_FLOAT,
+};
 
 CaosValue
 caos_value_int (int i)
@@ -194,6 +212,8 @@ caos_value_to_float (CaosValue val)
   return *(float*)&val.value;
 }
 
+// ~ Value helper functions ~
+
 bool
 caos_value_equal (CaosValue left, CaosValue right)
 {
@@ -206,4 +226,94 @@ caos_value_equal (CaosValue left, CaosValue right)
     return false;
   }
   return left.value == right.value;
+}
+
+//
+// ~ Lexer ~
+//
+
+CaosLexer caos_lexer (char *script) {
+  CaosLexer lex = { script, script };
+  return lex;
+}
+
+bool iswhitespace (char c) {
+  switch (c) {
+  case ' ':
+  case '\t':
+  case '\n':
+  case '\r':
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool isstrchar (char c) {
+  return c != '"';
+}
+
+bool issymchar (char c) {
+  // $#a-zA-Z0-9:?!_+-
+  if (isalnum(c)) return true;
+  switch (c) {
+  case '$':
+  case '#':
+  case ':':
+  case '?':
+  case '!':
+  case '_':
+  case '+':
+  case '-': // really?
+    return true;
+  default:
+    return false;
+  }
+}
+
+char* lex_string (CaosLexer *l, int i, bool (*keep_going) (char), char (*trans)(char)) {
+  char *s;
+  char c = *l->p;
+  if (trans) c = trans (c);
+
+  if (i > 1000) abort();
+  
+  if (!keep_going(c))
+    s = calloc (1, i + 1);
+  else {
+    l->p++;
+    s = lex_string (l, i + 1, keep_going, trans);
+    s[i] = c;
+  }
+  return s;
+}
+
+CaosValue caos_lexer_lex (CaosLexer *l) {
+  int i;
+
+  if (!*l->p) return caos_value_eoi();
+
+  char c = *l->p++;
+  while (iswhitespace(c)) c = *l->p++;
+  
+   if (isdigit (c)) {
+    i = c - '0';
+    while (isdigit(*l->p)) {
+      i *= 10;
+      i += *l->p++ - '0';
+    }
+    return caos_value_int (i);
+  }
+  else if (isalpha (c)) {
+    l->p--;
+    return caos_value_symbol (lex_string (l, 0, issymchar, (char(*)(char))tolower));
+  }
+  else if (c == '"') {
+    char *s = lex_string (l, 0, isstrchar, NULL);
+    l->p++; // skip endquote
+    return caos_value_string (s);
+  }
+  printf ("Error! '%c'\n", c);
+  abort();
+  return caos_value_null();
 }

@@ -7,20 +7,7 @@
 
 #include <stdint.h>
 
-enum DairyType {
-  CAOS_STRING = 3,
-  CAOS_INT,
-  CAOS_FLOAT,
-};
-
-typedef bool (*caos_comparison_t) (CaosValue, CaosValue);
-typedef bool (*caos_logical_t) (bool, bool);
-
-RONNIE_PUBLIC caos_comparison_t comparison_from_symbol (char *sym);
-
-RONNIE_PUBLIC caos_logical_t logical_from_symbol (char*);
-
-RONNIE_PUBLIC bool   caos_arg_bool (CaosContext*);
+RONNIE_PUBLIC bool  caos_arg_bool (CaosContext*);
 RONNIE_PUBLIC float caos_arg_float (CaosContext*);
 RONNIE_PUBLIC int   caos_arg_int (CaosContext*);
 RONNIE_PUBLIC char* caos_arg_string (CaosContext*);
@@ -38,5 +25,14 @@ RONNIE_PUBLIC int   caos_value_to_integer (CaosValue);
 RONNIE_PUBLIC char* caos_value_to_string (CaosValue);
 
 RONNIE_PUBLIC bool caos_value_equal (CaosValue, CaosValue);
+
+// ~ Lexer ~
+
+typedef struct CaosLexer {
+  char *script, *p;
+} CaosLexer;
+
+RONNIE_PUBLIC CaosLexer caos_lexer (char *script);
+RONNIE_PUBLIC CaosValue caos_lexer_lex (CaosLexer *lexer);
 
 #endif // CAOS_DAIRY_H

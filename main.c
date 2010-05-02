@@ -7,7 +7,6 @@
 
 #include "caos.h"
 #include "dairy.h"
-#include "lex.h"
 
 void c_bam (CaosContext *context)
 {
@@ -250,7 +249,7 @@ int main ()
   }
 
   {
-    CaosLexer lexer = caos_lexer ("nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 eq 0 outs \"hello, world!\" endi");
+    CaosLexer lexer = caos_lexer ("nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 eq 0 outs \"hello, world!\" bam! endi");
 
     int i, m;
     i = m = 0;

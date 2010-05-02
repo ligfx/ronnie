@@ -4,7 +4,7 @@ CFLAGS +=-fvisibility=hidden -fpic -ansi -Wall -Wno-comment -Werror -Wno-error=u
 main: main.o libronnie.so
 	${CC} -g $^ -lstdc++ -L. -lronnie -o $@ -Wl,-rpath,.
 
-libronnie.so: caos.o value.o dairy.o lex.o
+libronnie.so: caos.o value.o dairy.o
 	${CC} -shared -lstdc++ $^ -o $@
 
 %.o: %.c
