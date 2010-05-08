@@ -1,7 +1,9 @@
 #include "caos.h"
 #include "ronnie.h"
 
+#include <assert.h>
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -145,12 +147,26 @@ caos_arg_string (CaosContext *context)
   return caos_value_to_string (next);
 }
 
+int*
+caos_arg_bytestring (CaosContext *context)
+{
+  CaosValue next = caos_arg_value (context);
+  if (!caos_value_is_bytestring (next)) {
+    ERROR ("Expected byte-string");
+    return NULL;
+  }
+  
+  printf ("[debug] bytestring\n");
+  return caos_value_to_bytestring (next);
+}
+
 // ~ extra value types ~
 
-enum DairyType {
+enum RonnieType {
   CAOS_STRING = 50,
   CAOS_INT,
   CAOS_FLOAT,
+  CAOS_BYTESTRING
 };
 
 CaosValue
@@ -176,6 +192,13 @@ caos_value_float (float f)
   return val;
 }
 
+CaosValue
+caos_value_bytestring (int *a)
+{
+  CaosValue val = { CAOS_BYTESTRING, (intptr_t)a };
+  return val;
+}
+
 bool
 caos_value_is_integer (CaosValue val)
 {
@@ -194,6 +217,12 @@ caos_value_is_float (CaosValue val)
   return val.type == CAOS_FLOAT;
 }
 
+bool
+caos_value_is_bytestring (CaosValue val)
+{
+  return val.type == CAOS_BYTESTRING;
+}
+
 int
 caos_value_to_integer (CaosValue val)
 {
@@ -210,6 +239,12 @@ float
 caos_value_to_float (CaosValue val)
 {
   return *(float*)&val.value;
+}
+
+int*
+caos_value_to_bytestring (CaosValue val)
+{
+  return (int*)val.value;
 }
 
 // ~ Value helper functions ~
@@ -232,8 +267,8 @@ caos_value_equal (CaosValue left, CaosValue right)
 // ~ Lexer ~
 //
 
-CaosLexer caos_lexer (char *script) {
-  CaosLexer lex = { script, script };
+CaosLexer caos_lexer (enum CaosLexerVersion version, char *script) {
+  CaosLexer lex = { script, script, version };
   return lex;
 }
 
@@ -253,13 +288,18 @@ bool iseol (char c) {
   return c == '\n' || c == '\r';
 }
 
-bool isstrchar (char c) {
+bool isalbiastrchar (char c) {
+  return c != ']';
+}
+
+bool isc2estrchar (char c) {
   return c != '"';
 }
 
-bool issymchar (char c) {
+bool isbeginsymchar (char c) {
   // $#a-zA-Z0-9:?!_+-
   if (isalnum(c)) return true;
+  // TODO: Can we compare with a range?
   switch (c) {
   case '$':
   case '#':
@@ -267,12 +307,26 @@ bool issymchar (char c) {
   case '?':
   case '!':
   case '_':
-  case '+':
-  case '-': // really?
+  case '*':
     return true;
   default:
     return false;
   }
+}
+
+bool issymchar (char c) {
+  // $#a-zA-Z0-9:?!_+-
+  if (isbeginsymchar (c)) return true;
+  switch (c) {
+    case '-': // really?
+    case '+':
+      return true;
+  }
+  return false;
+}
+
+void lex_whitespace (CaosLexer *l) {
+  while (iswhitespace(*l->p)) l->p++;
 }
 
 char* lex_string (CaosLexer *l, int i, bool (*keep_going) (char), char (*trans)(char)) {
@@ -292,8 +346,43 @@ char* lex_string (CaosLexer *l, int i, bool (*keep_going) (char), char (*trans)(
   return s;
 }
 
-int lex_digit (CaosLexer *l, char c) {
-  int i = c - '0';
+char* lex_string_albia (CaosLexer *l)
+{
+  char *s = lex_string (l, 0, isalbiastrchar, NULL);
+  l->p++; // skip endbrace
+  return s;
+}
+
+char* lex_string_c2e (CaosLexer *l)
+{
+  char *s = lex_string (l, 0, isc2estrchar, NULL);
+  // TODO: What about escaped characters?
+  l->p++; // skip endquote
+  return s;
+}
+
+char* lex_symbol (CaosLexer *l)
+{
+  return lex_string (l, 0, issymchar, (char(*)(char))tolower);
+}
+
+int lex_integer_character (CaosLexer *l) {
+  int i = *l->p++;
+  assert ('\'' == *l->p);
+  l->p++;
+  return i;
+}
+
+int lex_integer_binary (CaosLexer *l) {
+  int i = 0;
+  while ('0' == *l->p || '1' == *l->p) {
+    i = (i << 1) + (*l->p++ == '1');
+  }
+  return i;
+}
+
+int lex_integer_literal (CaosLexer *l) {
+  int i = *l->p++ - '0';
   while (isdigit(*l->p)) {
     i *= 10;
     i += *l->p++ - '0';
@@ -301,58 +390,125 @@ int lex_digit (CaosLexer *l, char c) {
   return i;
 }
 
+int lex_integer (CaosLexer *l) {
+  if (isdigit (*l->p)) return lex_integer_literal(l);
+  
+  if ('%' == *l->p) { l->p++; return lex_integer_binary(l); }
+  if ('\'' == *l->p) { l->p++; return lex_integer_character(l); }
+
+  abort();
+}
+
+int* lex_bytestring (CaosLexer *l, int i) {
+  int *a;
+  int j;
+  
+  if (i > 1000) abort();
+  
+  if (']' == *l->p) {
+    l->p++;
+    a = calloc (sizeof(int), i+2);
+    a[i] = -1;
+  } else {
+    j = lex_integer (l);
+    lex_whitespace (l);
+    a = lex_bytestring (l, i+1);
+    a[i] = j;
+  }
+  return a;
+}
+
+CaosValue lex_value_numeral (CaosLexer *l) {
+  int i = lex_integer_literal (l);
+  if ('.' == *l->p) {
+    float f = i;
+    i = 1;
+    
+    l->p++;
+    while (isdigit (*l->p)) {
+      f += (*l->p++ - '0') / pow (10.0, i++);
+    }
+    return caos_value_float(f);
+  }
+  return caos_value_int(i);
+}
+
+CaosValue lex_value_negative_numeral (CaosLexer *l) {
+  CaosValue v = lex_value_numeral (l);
+  if (caos_value_is_integer (v))
+    return caos_value_int (-caos_value_to_integer (v));
+  if (caos_value_is_float (v))
+    return caos_value_float (-caos_value_to_float (v));
+  
+  abort();
+}
+
 CaosValue caos_lexer_lex (CaosLexer *l) {
-  char c;
-
 start:
-  if (!*l->p) return caos_value_eoi();
+  lex_whitespace(l);
 
-  c = *l->p++;
-  while (iswhitespace(c)) c = *l->p++;
-  if (c == '*') {
-    while (!iseol (c)) c = *l->p++;
+  if (!*l->p) return caos_value_eoi();
+  
+  if ('*' == *l->p) { // comment
+    while (!iseol (*l->p)) l->p++;
     goto start;
   }
-
-  if (isdigit (c)) {
-    return caos_value_int (lex_digit(l, c));
-  }
-  else if (isalpha (c)) {
-    l->p--;
-    return caos_value_symbol (lex_string (l, 0, issymchar, (char(*)(char))tolower));
-  }
-
-  char *s;
-  switch (c) {
-  case '-':
-    return caos_value_int (-lex_digit(l, '0'));
-  case '"':
-    s = lex_string (l, 0, isstrchar, NULL);
-    l->p++; // skip endquote
-    return caos_value_string (s);
-  case '=':
-    return caos_value_symbol ("eq");
-  case '<':
-    switch (*l->p) {
-    case '>':
+  
+  if (isdigit (*l->p)) // numeral
+    return lex_value_numeral (l);
+  
+  if (isbeginsymchar (*l->p)) // symbol
+    return caos_value_symbol (lex_symbol(l));
+  
+  if (CAOS_EXODUS == l->version) { // c2e string
+    if ('"' == *l->p) {
       l->p++;
-      return caos_value_symbol ("ne");
+      return caos_value_string (lex_string_c2e (l));
+    }
+  }
+  
+  switch (*(l->p++))
+  {
+    case '+': // positive number
+      return lex_value_numeral (l);
+    case '-': // negative number
+      return lex_value_negative_numeral (l);
+    case '%': // binary number
+      return caos_value_int (lex_integer_binary (l));
+    case '\'': // character
+      return caos_value_int (lex_integer_character (l));
+    case '[': // albia string, c2e byte-string
+      if (CAOS_ALBIA == l->version)
+        return caos_value_string (lex_string_albia (l));
+      else if (CAOS_EXODUS == l->version)
+        return caos_value_bytestring (lex_bytestring (l, 0));
+      else
+        abort();
     case '=':
-      l->p++;
-      return caos_value_symbol ("le");
-    default:
-      return caos_value_symbol ("lt");
-    }
-  case '>':
-    if (*l->p == '=') {
-      l->p++;
-      return caos_value_symbol ("ge");
-    } else {
-      return caos_value_symbol ("gt");
-    }
-  default:
-    printf ("Error! '%c'\n", c);
-    abort();
-    return caos_value_null();
+      return caos_value_symbol ("eq");
+    case '<':
+      switch (*l->p)
+      {
+        case '>':
+          l->p++;
+          return caos_value_symbol ("ne");
+        case '=':
+          l->p++;
+          return caos_value_symbol ("le");
+        default:
+          return caos_value_symbol ("lt");
+      }
+    case '>':
+      if (*l->p == '=') {
+        l->p++;
+        return caos_value_symbol ("ge");
+      } else {
+        return caos_value_symbol ("gt");
+      }
   }
+  
+  l->p--;
+  printf ("Error '%c'\n", *l->p);
+  abort();
+  return caos_value_null();
 }

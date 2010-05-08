@@ -12,6 +12,18 @@ void c_bam (CaosContext *context)
   printf ("BAM!!\n");
 }
 
+void c_outa (CaosContext *context)
+{
+  int *array = caos_arg_bytestring (context);
+  if (caos_get_error (context)) return;
+  
+  int *i = array;
+  while (*i >= 0) {
+    printf ("%i ", *i++);
+  }
+  printf ("\n");
+}
+
 void c_outs (CaosContext *context)
 { 
   char *string = caos_arg_string (context);
@@ -222,6 +234,7 @@ int main ()
   caos_register_function (runtime, "bam!", c_bam, 0);
   caos_register_function (runtime, "doif", c_doif, 0);
   caos_register_function (runtime, "endi", c_endi, 0);
+  caos_register_function (runtime, "outa", c_outa, 0);
   caos_register_function (runtime, "outs", c_outs, 0);
   caos_register_function (runtime, "outv", c_outv, 0);
   caos_register_function (runtime, "rand", 0, c_rand);
@@ -248,7 +261,9 @@ int main ()
   }
 
   {
-    CaosLexer lexer = caos_lexer ("nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5");
+    CaosLexer lexer = caos_lexer (CAOS_EXODUS, "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8 'A' %11]");
+    
+    // CaosLexer lexer = caos_lexer (CAOS_ALBIA, "new: simp 2 4 5 [flower] 4 3 56 outs [hi]");
 
     int i, m;
     i = m = 0;
