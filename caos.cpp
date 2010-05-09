@@ -61,6 +61,14 @@ caos_context_new (CaosRuntime *runtime, void *script, ICaosScript iface) {
   return context;
 }
 
+void
+caos_reset (CaosContext *context, void *script) {
+  context->error = NULL;
+  context->script = script;
+  context->user_data = NULL;
+  context->stack = new std::stack <int>();
+}
+
 int
 caos_mark (CaosContext *context)
 {

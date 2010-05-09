@@ -38,6 +38,7 @@ RONNIE_API void caos_register_binomial_function
 // ~ Context ~
 
 RONNIE_API CaosContext* caos_context_new(CaosRuntime*, void*, struct ICaosScript);
+RONNIE_API void caos_reset (CaosContext*, void*);
 
 // main thread
 RONNIE_API void caos_tick (CaosContext*, void *user_data);
