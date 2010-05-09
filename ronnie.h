@@ -5,6 +5,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 RONNIE_API bool  caos_arg_bool (CaosContext*);
 RONNIE_API float caos_arg_float (CaosContext*);
 RONNIE_API int   caos_arg_int (CaosContext*);
@@ -42,5 +46,9 @@ typedef struct CaosLexer {
 
 RONNIE_API CaosLexer caos_lexer (enum CaosLexerVersion, char *script);
 RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // RONNIE_H

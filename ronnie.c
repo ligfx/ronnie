@@ -460,12 +460,11 @@ start:
   if (isbeginsymchar (*l->p)) // symbol
     return caos_value_symbol (lex_symbol(l));
   
-  if (CAOS_EXODUS == l->version) { // c2e string
-    if ('"' == *l->p) {
+  if (CAOS_EXODUS == l->version)
+    if ('"' == *l->p) { // c2e string
       l->p++;
       return caos_value_string (lex_string_c2e (l));
     }
-  }
   
   switch (*(l->p++))
   {

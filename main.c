@@ -229,8 +229,6 @@ int main ()
 
   CaosRuntime *runtime = caos_runtime_new();
   
-  CaosContext *context = caos_context_new (runtime);
-  
   caos_register_function (runtime, "bam!", c_bam, 0);
   caos_register_function (runtime, "doif", c_doif, 0);
   caos_register_function (runtime, "endi", c_endi, 0);
@@ -252,7 +250,7 @@ int main ()
   {
     struct Script s = { script, script };
 
-    caos_set_script (context, &s, iface);
+    CaosContext *context = caos_context_new (runtime, &s, iface);
 
     while (!caos_done (context)) {
       caos_tick (context, NULL);
@@ -284,7 +282,7 @@ int main ()
     struct Script s = { lexed_script, lexed_script };
 
     // TODO: caos_reset
-    caos_set_script (context, &s, iface);
+    CaosContext *context = caos_context_new (runtime, &s, iface);
 
     while (!caos_done (context)) {
       caos_tick (context, NULL);

@@ -49,22 +49,16 @@ caos_register_binomial_function (
 }
 
 CaosContext*
-caos_context_new (CaosRuntime *runtime) {
+caos_context_new (CaosRuntime *runtime, void *script, ICaosScript iface) {
   CaosContext *context = (CaosContext*) malloc (sizeof (*context)); {
     context->runtime = runtime;
     context->error = NULL;
-    context->script = NULL;
+    context->script = script;
+    context->script_iface = iface;
     context->user_data = NULL;
     context->stack = new std::stack <int>();
   }
   return context;
-}
-
-void
-caos_set_script (CaosContext *context, void *script, ICaosScript iface)
-{
-  context->script = script;
-  context->script_iface = iface;
 }
 
 int
