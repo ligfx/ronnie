@@ -47,6 +47,10 @@ typedef struct CaosLexer {
 RONNIE_API CaosLexer caos_lexer (enum CaosLexerVersion, char *script);
 RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer);
 
+// ~ Helpers ~
+
+RONNIE_API CaosValue* ronnie_script_from_string (enum CaosLexerVersion, char*);
+
 #ifdef __cplusplus
 }
 #endif

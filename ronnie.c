@@ -511,3 +511,24 @@ start:
   abort();
   return caos_value_null();
 }
+
+CaosValue* ronnie_script_from_string (enum CaosLexerVersion version, char *source) {
+  int i, m;
+  i = m = 0;
+  CaosLexer lexer = caos_lexer (version, source);
+  CaosValue *script = NULL;
+
+  while (true) {
+    CaosValue val = caos_lexer_lex(&lexer);
+    if (i == m) {
+      m = m ? m << 1 : 1;
+      script = (CaosValue*) realloc (script, sizeof(CaosValue) * m);
+      assert (script);
+    }
+    script[i++] = val;
+
+    if (caos_value_is_eoi (val)) break;
+  }
+  
+  return script;
+}
