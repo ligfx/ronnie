@@ -13,10 +13,7 @@
 
 CaosRuntime*
 caos_runtime_new() {
-  CaosRuntime *runtime = (CaosRuntime*) malloc (sizeof (*runtime)); {
-    runtime->functions = std::map <std::string, FunctionRef>();
-    runtime->binomials = std::map <std::string, std::map <std::string, FunctionRef> >();
-  }
+  CaosRuntime *runtime = new CaosRuntime();
 
   return runtime;
 }
@@ -31,21 +28,6 @@ caos_register_function (
   FunctionRef f = { command, expression };
   // TODO: Error if label already registered
   runtime->functions [label] = f;
-}
-
-void
-caos_register_binomial_function (
-  CaosRuntime *runtime,
-  char *base,
-  char *label,
-  caos_command_t command,
-  caos_expression_t expression
-) {
-  FunctionRef f = { command, expression };
-
-  // TODO: Error if base already registered as function
-  // TODO: Error if label already registered
-  runtime->binomials [base] [label] = f;
 }
 
 CaosContext*
@@ -235,22 +217,6 @@ caos_get_function (CaosContext *context)
   if (functions.count (label))
   {
     return functions[label];
-  }
-
-  std::map<std::string, std::map<std::string, FunctionRef> > &binomials
-    = context->runtime->binomials;
-  printf ("%s\n", label);
-  if (binomials.count (label))
-  {
-      std::map<std::string, FunctionRef> &second
-        = binomials [label];
-
-      label = caos_arg_symbol (context);
-      if (!label) return null_func;
-      printf ("[DEBUG] Secondary Function '%s'\n", label);
-
-      if (second.count (label))
-        return second [label];
   }
 
   return null_func;

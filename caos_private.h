@@ -15,7 +15,6 @@ typedef struct FunctionRef {
 
 struct CaosRuntime {
   std::map <std::string, FunctionRef> functions;
-  std::map <std::string, std::map <std::string, FunctionRef> > binomials;
 };
 
 struct CaosContext {

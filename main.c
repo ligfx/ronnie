@@ -47,7 +47,10 @@ void c_outv (CaosContext *context)
 
 void c_new_simp (CaosContext *context)
 {
-
+  char *subcommand = caos_arg_symbol (context);
+  if (caos_get_error (context)) return;
+  
+  assert (strcmp (subcommand, "simp") == 0);
   int family = caos_arg_int (context),
       genus = caos_arg_int (context),
       species = caos_arg_int (context);
@@ -238,7 +241,7 @@ int main ()
   caos_register_function (runtime, "rand", 0, c_rand);
   caos_register_function (runtime, "repe", c_repe, 0);
   caos_register_function (runtime, "reps", c_reps, 0);
-  caos_register_binomial_function (runtime, "new:", "simp", c_new_simp, 0);
+  caos_register_function (runtime, "new:", c_new_simp, 0);
 
   struct ICaosScript iface = {
     (caos_script_advance_t) script_advance, 

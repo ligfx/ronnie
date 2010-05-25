@@ -32,8 +32,6 @@ RONNIE_API CaosRuntime* caos_runtime_new();
 
 RONNIE_API void caos_register_function
   (CaosRuntime*, char*, caos_command_t, caos_expression_t);
-RONNIE_API void caos_register_binomial_function
-  (CaosRuntime*, char*, char*, caos_command_t, caos_expression_t);      
 
 // ~ Context ~
 
