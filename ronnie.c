@@ -532,3 +532,27 @@ CaosValue* ronnie_script_from_string (enum CaosLexerVersion version, char *sourc
   
   return script;
 }
+
+RonnieScriptRef
+ronnie_script_ref (CaosValue *script)
+{
+  RonnieScriptRef ref = { script, script };
+  return ref;
+}
+
+void ronnie_script_ref_advance (RonnieScriptRef *ref) { ref->i++; }
+CaosValue ronnie_script_ref_get (RonnieScriptRef *ref) { return *ref->i; }
+void ronnie_script_ref_jump (RonnieScriptRef *ref, int i) { ref->i = ref->script + i; }
+int ronnie_script_ref_mark (RonnieScriptRef *ref) { return ref->i - ref->script; }
+
+struct ICaosScript
+ronnie_script_ref_iface()
+{
+  static struct ICaosScript iface = {
+    (caos_script_advance_t)ronnie_script_ref_advance,
+    (caos_script_get_t)ronnie_script_ref_get,
+    (caos_script_jump_t)ronnie_script_ref_jump,
+    (caos_script_mark_t)ronnie_script_ref_mark
+  };
+  return iface;
+}

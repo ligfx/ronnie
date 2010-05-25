@@ -261,31 +261,18 @@ int main ()
     }
   }
 
-  {
-    CaosLexer lexer = caos_lexer (CAOS_EXODUS, "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8 'A' %11]");
-    
+  { 
     // CaosLexer lexer = caos_lexer (CAOS_ALBIA, "new: simp 2 4 5 [flower] 4 3 56 outs [hi]");
 
-    int i, m;
-    i = m = 0;
-    CaosValue *lexed_script = 0;
+    CaosValue *script = ronnie_script_from_string (
+      CAOS_EXODUS,
+      "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8 'A' %11]");
 
-    while (true) {
-      CaosValue val = caos_lexer_lex(&lexer);
-      if (i == m) {
-        m = m ? m << 1 : 1;
-        lexed_script = realloc (lexed_script, sizeof(CaosValue) * m);
-        assert (lexed_script);
-      }
-      lexed_script[i++] = val;
+    RonnieScriptRef ref = ronnie_script_ref (script);
 
-      if (caos_value_is_eoi (val)) break;
-    }
-
-    struct Script s = { lexed_script, lexed_script };
 
     // TODO: caos_reset
-    CaosContext *context = caos_context_new (runtime, &s, iface);
+    CaosContext *context = caos_context_new (runtime, &ref, ronnie_script_ref_iface());
 
     while (!caos_done (context)) {
       caos_tick (context, NULL);
