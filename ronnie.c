@@ -117,7 +117,7 @@ caos_arg_float (CaosContext *context)
     return -42;
   }
 
-  printf ("[DEBUG] Float '%f'\n", caos_value_to_float (next));
+  //printf ("[DEBUG] Float '%f'\n", caos_value_to_float (next));
   return caos_value_to_float (next);
 }
 
@@ -130,7 +130,7 @@ caos_arg_int (CaosContext *context)
     return -42;
   }
 
-  printf ("[DEBUG] Int '%i'\n", caos_value_to_integer (next));
+  //printf ("[DEBUG] Int '%i'\n", caos_value_to_integer (next));
   return caos_value_to_integer (next);
 }
 
@@ -143,7 +143,7 @@ caos_arg_string (CaosContext *context)
     return NULL;
   }
 
-  printf ("[DEBUG] String '%s'\n", caos_value_to_string (next));
+  //printf ("[DEBUG] String '%s'\n", caos_value_to_string (next));
   return caos_value_to_string (next);
 }
 
@@ -156,7 +156,7 @@ caos_arg_bytestring (CaosContext *context)
     return NULL;
   }
   
-  printf ("[debug] bytestring\n");
+  //printf ("[debug] bytestring\n");
   return caos_value_to_bytestring (next);
 }
 

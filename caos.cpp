@@ -182,7 +182,7 @@ caos_arg_value (CaosContext *context)
       if (expr)
         ret = expr (context);
       else {
-        printf ("%s\n", caos_value_to_symbol (token));
+        //printf ("%s\n", caos_value_to_symbol (token));
         ERROR ("No such expression");
       }
   } else {
@@ -210,7 +210,7 @@ caos_get_function (CaosContext *context)
 
   label = caos_arg_symbol (context);
   if (!label) return null_func;
-  printf ("[DEBUG] Function '%s'\n", label);
+  //printf ("[DEBUG] Function '%s'\n", label);
 
   std::map<std::string, FunctionRef> &functions
     = context->runtime->functions;
@@ -225,7 +225,7 @@ caos_get_function (CaosContext *context)
 caos_command_t
 caos_get_command (CaosContext *context)
 {
-  printf ("[DEBUG] Command\n");
+  //printf ("[DEBUG] Command\n");
   return caos_get_function (context).command;
 }
 
