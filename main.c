@@ -47,10 +47,6 @@ void c_outv (CaosContext *context)
 
 void c_new_simp (CaosContext *context)
 {
-  char *subcommand = caos_arg_symbol (context);
-  if (caos_get_error (context)) return;
-  
-  assert (strcmp (subcommand, "simp") == 0);
   int family = caos_arg_int (context),
       genus = caos_arg_int (context),
       species = caos_arg_int (context);
@@ -180,8 +176,7 @@ int main ()
     caos_value_symbol ("reps"),
     caos_value_int (5),
     caos_value_symbol ("bam!"),
-    caos_value_symbol ("new:"),
-    caos_value_symbol ("simp"),
+    caos_value_symbol ("new: simp"),
     caos_value_int (2),
     caos_value_int (4),
     caos_value_int (50000),
@@ -213,7 +208,7 @@ int main ()
     caos_value_symbol ("eq"),
     caos_value_int (7),
     caos_value_symbol ("outs"),
-    caos_value_string ("This, on the other hand, should be output"),
+    caos_value_string ("This, on the other hand, _should_ definitely be printed"),
     caos_value_symbol ("endi"),
     caos_value_symbol ("bam!"),
     caos_value_symbol ("outs"),
@@ -241,7 +236,7 @@ int main ()
   caos_register_function (runtime, "rand", 0, c_rand);
   caos_register_function (runtime, "repe", c_repe, 0);
   caos_register_function (runtime, "reps", c_reps, 0);
-  caos_register_function (runtime, "new:", c_new_simp, 0);
+  caos_register_function (runtime, "new: simp", c_new_simp, 0);
 
   struct ICaosScript iface = {
     (caos_script_advance_t) script_advance, 
@@ -262,11 +257,13 @@ int main ()
   }
 
   { 
-    // CaosLexer lexer = caos_lexer (CAOS_ALBIA, "new: simp 2 4 5 [flower] 4 3 56 outs [hi]");
+    /* CaosValue *script = ronnie_script_from_string (
+      CAOS_ALBIA,
+      "new: simp 2 4 5 [flower] 4 3 56 outs [hi]"); */
 
     CaosValue *script = ronnie_script_from_string (
       CAOS_EXODUS,
-      "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8 'A' %11]");
+      "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8]");
 
     RonnieScriptRef ref = ronnie_script_ref (script);
 

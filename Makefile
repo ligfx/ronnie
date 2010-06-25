@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS +=-fvisibility=hidden -fpic -ansi -Wall -Wno-comment -Werror -Wno-error=unused-variable
+override CFLAGS := -fvisibility=hidden -fpic -posix -Wall -Wno-comment -Werror -Wno-error=unused-variable -g $(CFLAGS)
 
 all: libronnie.so include main
 
@@ -9,26 +9,27 @@ include: caos.h value.h ronnie.h common.h
 	@cp $^ include/ronnie
 
 main: main.o libronnie.so
-	@${CC} -g $^ -lstdc++ -L. -lronnie -o $@ -Wl,-rpath,.
+	@${CC} $^ -lstdc++ -L. -lronnie -o $@ -Wl,-rpath,.
 	@echo " LD $^ => $@"
 
 main.o: include main.c
-	@${CC} -g -c -Iinclude main.c ${CFLAGS}
+	@${CC} -c -Iinclude main.c ${CFLAGS}
 	@echo " CC main.c => $@"
 
-libronnie.so: caos.o value.o ronnie.o
+libronnie.so: caos.o value.o ronnie.o lexer.o
 	@${CC} -shared -lstdc++ $^ -o $@
 	@echo " LD $^ => $@"
 
 %.o: %.c
-	@${CC} -g -c $^ ${CFLAGS}
+	@${CC} -c $^ ${CFLAGS}
 	@echo " CC $^ => $@"
 
 %.o: %.cpp
-	@${CC} -g -c $^ ${CFLAGS}
+	@${CC} -c $^ ${CFLAGS}
 	@echo " CC $^ => $@"
 
 clean:
 	-rm main libronnie.so
 	-rm -frv *.o
+	-rm *~
 	-rm -frv include
