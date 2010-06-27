@@ -29,6 +29,7 @@ struct ICaosScript {
 // ~ Runtime ~
 
 RONNIE_API CaosRuntime* caos_runtime_new();
+RONNIE_API void caos_runtime_destroy(CaosRuntime*);
 
 RONNIE_API void caos_register_function
   (CaosRuntime*, char*, caos_command_t, caos_expression_t);
@@ -36,7 +37,8 @@ RONNIE_API void caos_register_function
 // ~ Context ~
 
 RONNIE_API CaosContext* caos_context_new(CaosRuntime*, void*, struct ICaosScript);
-RONNIE_API void caos_reset (CaosContext*, void*);
+RONNIE_API void caos_context_destroy(CaosContext*);
+//RONNIE_API void caos_reset (CaosContext*, void*);
 
 // main thread
 RONNIE_API void caos_tick (CaosContext*, void *user_data);

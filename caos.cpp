@@ -19,6 +19,11 @@ caos_runtime_new() {
 }
 
 void
+caos_runtime_destroy (CaosRuntime *rt) {
+  delete rt;
+}
+
+void
 caos_register_function (
   CaosRuntime *runtime,
   char *label,
@@ -41,6 +46,12 @@ caos_context_new (CaosRuntime *runtime, void *script, ICaosScript iface) {
     context->stack = new std::stack <int>();
   }
   return context;
+}
+
+void
+caos_context_destroy (CaosContext *c) {
+  delete c->stack;
+  free (c);
 }
 
 void
