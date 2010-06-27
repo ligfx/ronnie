@@ -69,6 +69,8 @@ RONNIE_API void caos_set_error (CaosContext*, char*);
 // user
 RONNIE_API void* caos_user_data (CaosContext*);
 
+RONNIE_API void* caos_get_script (CaosContext*);
+
 #ifdef __cplusplus
 }
 #endif

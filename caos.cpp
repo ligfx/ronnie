@@ -269,3 +269,9 @@ caos_user_data (CaosContext *context)
 {
   return context->user_data;
 }
+
+void*
+caos_get_script (CaosContext *context)
+{
+  return context->script;
+}
