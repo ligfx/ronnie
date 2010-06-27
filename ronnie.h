@@ -49,15 +49,11 @@ RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer);
 
 // ~ Helpers ~
 
-typedef struct RonnieScriptRef {
-  CaosValue *script;
-  CaosValue *i;
-} RonnieScriptRef;
-
 RONNIE_API CaosValue* ronnie_script_from_string (enum CaosLexerVersion, char*);
 
-RONNIE_API RonnieScriptRef ronnie_script_ref (CaosValue*);
-RONNIE_API struct ICaosScript ronnie_script_ref_iface();
+// TODO: const CaosRuntime*
+RONNIE_API CaosContext* ronnie_context_new (CaosRuntime*, CaosValue*);
+RONNIE_API void ronnie_context_destroy (CaosContext*);
 
 #ifdef __cplusplus
 }

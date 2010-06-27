@@ -238,17 +238,8 @@ int main ()
   caos_register_function (runtime, "reps", c_reps, 0);
   caos_register_function (runtime, "new: simp", c_new_simp, 0);
 
-  struct ICaosScript iface = {
-    (caos_script_advance_t) script_advance, 
-    (caos_script_get_t)     script_get,
-    (caos_script_jump_t)    script_jump,
-    (caos_script_mark_t)    script_mark
-  };
-
   {
-    struct Script s = { script, script };
-
-    CaosContext *context = caos_context_new (runtime, &s, iface);
+    CaosContext *context = ronnie_context_new (runtime, script);
 
     while (!caos_done (context)) {
       caos_tick (context, NULL);
@@ -264,12 +255,8 @@ int main ()
     CaosValue *script = ronnie_script_from_string (
       CAOS_EXODUS,
       "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8]");
-
-    RonnieScriptRef ref = ronnie_script_ref (script);
-
-
-    // TODO: caos_reset
-    CaosContext *context = caos_context_new (runtime, &ref, ronnie_script_ref_iface());
+    
+    CaosContext *context = ronnie_context_new (runtime, script);
 
     while (!caos_done (context)) {
       caos_tick (context, NULL);
