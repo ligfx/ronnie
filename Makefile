@@ -1,5 +1,4 @@
-CC=clang
-override CFLAGS := -fvisibility=hidden -fpic -posix -Wall -Wno-comment -Werror -Wno-error=unused-variable -g $(CFLAGS)
+override CFLAGS := -fvisibility=hidden -fpic -ansi -Wall -Wno-comment -Werror -Wno-error=unused-variable -g $(CFLAGS)
 
 all: libronnie.so include main
 
@@ -13,7 +12,7 @@ main: main.o libronnie.so
 	@echo " LD $^ => $@"
 
 main.o: include main.c
-	@${CC} -c -Iinclude main.c ${CFLAGS}
+	@${CC} -c -Iinclude main.c ${CFLAGS} -std=c99
 	@echo " CC main.c => $@"
 
 libronnie.so: caos.o value.o ronnie.o lexer.o
@@ -21,7 +20,7 @@ libronnie.so: caos.o value.o ronnie.o lexer.o
 	@echo " LD $^ => $@"
 
 %.o: %.c
-	@${CC} -c $^ ${CFLAGS}
+	@${CC} -c $^ ${CFLAGS} -std=c99
 	@echo " CC $^ => $@"
 
 %.o: %.cpp
