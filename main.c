@@ -7,6 +7,14 @@
 
 #include <ronnie/ronnie.h>
 
+/*
+
+lsp: defn "bam!"
+  dbg: outs "BAM!!"
+lsp: endf
+
+*/
+
 void c_bam (CaosContext *context)
 {
   printf ("BAM!!\n");
@@ -61,6 +69,19 @@ void c_new_simp (CaosContext *context)
     spritefile, image_count, first_image, plane);
 }
 
+/*
+  cfunction "rand" type:float type:void
+
+  expression rand
+    let left arg-int
+    let right arg-int
+  begin
+    
+    // (+ left (% (rand) (- right left)))
+    return add get left mod cfunction "rand" sub get right get left
+  ende
+*/
+
 CaosValue c_rand (CaosContext *context)
 {
   int left = caos_arg_int (context);
@@ -70,6 +91,18 @@ CaosValue c_rand (CaosContext *context)
   int result = rand() % (right - left) + left;
   return caos_value_int (result);
 }
+
+/*
+
+  command reps
+    let loops arg-int
+  begin
+
+    push mark
+    push loops
+  endc
+
+*/
 
 void
 c_reps (CaosContext *context) {
@@ -81,6 +114,23 @@ c_reps (CaosContext *context) {
   caos_stack_push (context, loops_left);
   // Stack [pos, loops_left]
 }
+
+/*
+
+  command repe
+  begin
+    let loops sub pop 1
+
+    doif get loops eq 0
+      null pop
+    else
+      let pos = peek
+      jump pos
+      push loop
+    endi  
+  endc
+
+*/
 
 void
 c_repe (CaosContext *context) {
@@ -96,6 +146,19 @@ c_repe (CaosContext *context) {
     // Stack [pos, loops_left]
   }
 }
+
+/*
+  command doif
+    let match arg-bool
+  begin
+    
+    push get match
+    push 0
+    doif get match eq false
+      fast-forward "elif" "else" "endi" null
+    endi
+  endc
+*/
 
 void
 c_doif (CaosContext *context) {
@@ -147,6 +210,16 @@ c_elif (CaosContext *context) {
   // Stack [already_matched]
 }
 
+/*
+
+  command else
+    doif peek eq true
+      fast-forward "endi" null
+    endi
+  endc
+
+*/
+
 void
 c_else (CaosContext *context) {
   // Stack [already_matched]
@@ -157,6 +230,10 @@ c_else (CaosContext *context) {
 
   // Stack [already_matched]
 }
+
+/*
+  command endi null pop endc
+*/
 
 void
 c_endi (CaosContext *context) {
