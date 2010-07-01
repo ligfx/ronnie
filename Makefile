@@ -8,7 +8,7 @@ include: caos.h value.h ronnie.h common.h
 	@cp $^ include/ronnie
 
 main: main.o libronnie.so
-	@${CC} $^ -lstdc++ -L. -lronnie -o $@ -Wl,-rpath,.
+	@${CC} $^ -L. -lronnie -o $@ -Wl,-rpath,.
 	@echo " LD $^ => $@"
 
 main.o: include main.c
