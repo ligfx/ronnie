@@ -104,18 +104,40 @@ c_doif (CaosContext *context) {
   if (caos_get_error (context)) return;
 
   caos_stack_push (context, match);
-  caos_stack_push (context, 0);
+  // caos_stack_push (context, 0);
   if (!match)
     caos_fast_forward (context, "elif", "else", "endi", 0);
   // Stack [already_matched]
 }
 
+/*
+  
+  command elif
+  begin
+    
+    doif peek eq true
+      fast-forward "elif" "else" "endi" null
+    else
+      null pop
+      push true
+    end
+  endc
+  
+*/
+
 void
 c_elif (CaosContext *context) {
   // Stack [already_matched]
-  if (caos_stack_peek (context) == true // already matched
-  // || caos_arg_bool (context) == false // didn't match this time
-  ) {
+  if (caos_stack_peek (context) == true) // already matched)
+  {
+    caos_fast_forward (context, "endi", 0);
+    return;
+  }
+  
+  bool match = caos_arg_bool (context);
+  if (caos_get_error (context)) return;
+  if (!match)// didn't match this time
+  {
     caos_fast_forward (context, "elif", "else", "endi", 0);
     return;
   }
