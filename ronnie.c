@@ -301,14 +301,19 @@ ronnie_context_destroy (CaosContext *c)
   caos_context_destroy (c);
 }
 
-CaosValue* ronnie_script_from_string (enum CaosLexerVersion version, char *source) {
+CaosValue* ronnie_script_from_string (enum CaosLexerVersion version, CaosLexError **e, char *source) {
   int i, m;
   i = m = 0;
   CaosLexer lexer = caos_lexer (version, source);
   CaosValue *script = NULL;
 
   while (true) {
-    CaosValue val = caos_lexer_lex(&lexer);
+    CaosValue val = caos_lexer_lex(&lexer, e);
+    if (caos_value_is_null (val)) {
+      // TODO: What about malloc'd tokens?
+      free (script);
+      return NULL;
+    }
     if (i == m) {
       m = m ? m << 1 : 1;
       script = (CaosValue*) realloc (script, sizeof(CaosValue) * m);

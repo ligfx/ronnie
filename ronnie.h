@@ -41,15 +41,34 @@ enum CaosLexerVersion {
 
 typedef struct CaosLexer {
   char *script, *p;
+  unsigned int lineno;
   enum CaosLexerVersion version;
 } CaosLexer;
 
+typedef enum {
+  CAOS_UNKNOWN = 0,
+  CAOS_MISLEADING_UNARY_PLUS,
+  CAOS_MISLEADING_UNARY_MINUS,
+  CAOS_UNCLOSED_STRING,
+  CAOS_UNCLOSED_BYTESTRING,
+  CAOS_MISLEADING_SINGLE_QUOTE,
+  CAOS_UNRECOGNIZED_CHARACTER,
+  CAOS_BYTESTRING_EXPECTED_INTEGER,
+} CaosLexErrorType;
+
+typedef struct CaosLexError {
+    CaosLexErrorType type;
+    unsigned int lineno;
+    void *data;
+} CaosLexError;
+
 RONNIE_API CaosLexer caos_lexer (enum CaosLexerVersion, char *script);
-RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer);
+RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer, CaosLexError**);
+RONNIE_API void caos_lex_error_free (CaosLexError*);
 
 // ~ Helpers ~
 
-RONNIE_API CaosValue* ronnie_script_from_string (enum CaosLexerVersion, char*);
+RONNIE_API CaosValue* ronnie_script_from_string (enum CaosLexerVersion, CaosLexError**, char*);
 
 // TODO: const CaosRuntime*
 RONNIE_API CaosContext* ronnie_context_new (CaosRuntime*, CaosValue*);

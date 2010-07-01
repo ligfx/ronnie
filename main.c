@@ -329,15 +329,25 @@ int main ()
       CAOS_ALBIA,
       "new: simp 2 4 5 [flower] 4 3 56 outs [hi]"); */
 
+    CaosLexError *error = NULL;
     CaosValue *script = ronnie_script_from_string (
       CAOS_EXODUS,
+      &error,
       "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8]");
     
-    CaosContext *context = ronnie_context_new (runtime, script);
+    if (error) {
+      printf ("[Error] line %i, error %i\n", error->lineno, error->type);
+      caos_lex_error_free (error);
+    }
+    else
+    {
+      CaosContext *context = ronnie_context_new (runtime, script);
 
-    while (!caos_done (context)) {
-      caos_tick (context, NULL);
-      if ((error = caos_get_error (context))) printf ("[ERROR] %s\n", error);
+      while (!caos_done (context)) {
+        caos_tick (context, NULL);
+        char *error = caos_get_error (context);
+        if (error) printf ("[ERROR] %s\n", error);
+      }
     }
   }
 }
