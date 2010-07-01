@@ -167,28 +167,6 @@ c_endi (CaosContext *context) {
   // Stack []
 }
 
-struct Script {
-  CaosValue *script;
-  CaosValue *ip;
-};
-
-void script_advance (struct Script *script) {
-  script->ip++;
-}
-
-CaosValue script_get (struct Script *script) {
-  return *script->ip;
-}
-
-
-void script_jump (struct Script *script, int mark) {
-  script->ip = script->script + mark;
-}
-
-int script_mark (struct Script *script) {
-  return script->ip - script->script;
-}
-
 int main ()
 {
   char *error;
