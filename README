@@ -1,0 +1,119 @@
+
+        ###   ##  #   # #   # ##### ####
+        #  # #  # ##  # ##  #   #   #
+        ###  #  # # # # # # #   #   ###
+        # #  #  # #  ## #  ##   #   #
+        #  #  ##  #   # #   # ##### ####
+        
+  ~ An elegant weapon for a more civilized age ~
+
+  CAOS (Creatures Agent Option Script) is a small,
+  register-based opcode language used (in various
+  incarnations) in all games in the Creatures series[0].
+
+  ~ what does it look like? ~
+
+    reps 5
+    outs "Buon journo!"
+    repe
+    
+  Or,
+    
+    setv va00 2
+    setv va01 4
+    addv va00 va01
+    outv va00
+
+  It looks like assembly language [1].
+
+  ~ greenspun's tenth rule of programming ~
+
+  "Any sufficiently complicated C or Fortan program
+   contains, an ad hoc, informally-specified, bug-ridden,
+   slow implementation of half of Common Lisp."
+   
+  CAOS is exactly like Lisp, just without parentheses,
+  variables, user-defined functions, data structures,
+  macros, or anything else that might be even the slightest
+  bit useful.
+
+  What is does have is the idea that code is data. Is the
+  canonical implementation written this way? I'm not sure.
+  But Ronnie makes available the running script as a stream
+  of values. Conditionals skip forward if they don't match.
+  Loops jump backwards. This allows any function, including
+  those that would normally be in a "stdlib", to be defined
+  outside of the core, which makes it simpler.
+
+  ~ design ~
+
+  Core:
+    
+    * Runtime. Holds shared references to functions.
+
+    * Context. Runs through a script, executing one command
+      every time caos_tick is called. Operates on 'function'
+      tokens, divided into commands and expressions. 'Other'
+      tokens are handled in userspace.
+     
+  Ronnie:
+    
+    * Lexer. Returns a stream of tokens from a string. 
+
+    * Typed arguments. caos_arg_int, caos_arg_string, and
+      such.
+
+    * A small shunting-yard implementation for parsing
+      infix-notation conditions. Ex. DOIF 0 EQ 1 OR 5 GT 7
+
+  ~ interesting ideas ~
+
+    * Defining functions in CAOS
+      This implementation, unlike the original, doesn't
+      require function names to be 4 bytes, which makes
+      things nice. And if we implement functions, we might
+      as well add named variables to go with them.
+
+      Something like this.
+
+      command reps
+        let loops arg: int
+        push mark
+        push loops
+      endc
+
+      command repe
+        let loops subtract stk: pop 1
+        if loops eq 0 pop
+        else
+          let pos peek
+          jump pos
+          push loop
+        endi  
+      endc
+
+    * Just-Too-Late "compiling"
+      When run through a function token the first time,
+      replace it with the function pointer. Then, if we
+      execute a second time, we won't have to do another
+      lookup.
+      
+      Problem: Makes it more difficult to fast-
+      forward to tokens, because we can't match against
+      strings anymore. Doubles the amount of comparisons
+      we need to do when fast-forwarding, unless we do
+      something tricky. (COMPILED_FUNCTIONS flag on script?)
+
+  ~ license ~
+
+  See COPYING for legal information. It's under the MIT
+  license, which lets you do anything you want. Have fun!
+
+  ~ footnotes ~
+
+  0: Official site:  <http://gamewaredevelopment.com/creatures_index.php>
+     Community wiki: <http://creatureswiki.net/>
+
+  1: For those of you who don't like assembly, KAOS provides
+     a more high-level alternative.
+     <http://creatures.wikia.com/wiki/Kaos>

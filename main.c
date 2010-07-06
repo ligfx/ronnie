@@ -92,18 +92,6 @@ CaosValue c_rand (CaosContext *context)
   return caos_value_int (result);
 }
 
-/*
-
-  command reps
-    let loops arg-int
-  begin
-
-    push mark
-    push loops
-  endc
-
-*/
-
 void
 c_reps (CaosContext *context) {
   // Stack []
@@ -114,23 +102,6 @@ c_reps (CaosContext *context) {
   caos_stack_push (context, loops_left);
   // Stack [pos, loops_left]
 }
-
-/*
-
-  command repe
-  begin
-    let loops sub pop 1
-
-    doif get loops eq 0
-      null pop
-    else
-      let pos = peek
-      jump pos
-      push loop
-    endi  
-  endc
-
-*/
 
 void
 c_repe (CaosContext *context) {
