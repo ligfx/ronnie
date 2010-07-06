@@ -249,7 +249,7 @@ int main ()
   char *error;
   srand (time (NULL));
 
-  CaosValue script[] = {
+  CaosValue stream[] = {
     caos_value_symbol ("reps"),
     caos_value_int (5),
     caos_value_symbol ("bam!"),
@@ -316,7 +316,8 @@ int main ()
   caos_register_function (runtime, "new: simp", c_new_simp, 0);
 
   {
-    CaosContext *context = ronnie_context_new (runtime, script);
+    CaosScript *script = caos_script_from_array (stream);
+    CaosContext *context = caos_context_new (runtime, script);
 
     while (!caos_done (context)) {
       caos_tick (context, NULL);
@@ -330,9 +331,8 @@ int main ()
       "new: simp 2 4 5 [flower] 4 3 56 outs [hi]"); */
 
     CaosLexError *error = NULL;
-    CaosValue *script = ronnie_script_from_string (
-      CAOS_EXODUS,
-      &error,
+    CaosScript *script = caos_script_from_string (
+      CAOS_EXODUS, &error,
       "nEW: Simp 2 5 6 \"flower\" 4 3 rand 500 6000 doif 0 = 0 outs \"hello, world!\" bam! outv 42 endi * ignore me hahahadf45342frc23\n outv -5 outv 4.76 outv 'A' outv %00000011 outa [7 8]");
     
     if (error) {
@@ -341,7 +341,7 @@ int main ()
     }
     else
     {
-      CaosContext *context = ronnie_context_new (runtime, script);
+      CaosContext *context = caos_context_new (runtime, script);
 
       while (!caos_done (context)) {
         caos_tick (context, NULL);

@@ -7,6 +7,14 @@
 #include <stack>
 #include <string>
 
+struct CaosScript {
+  CaosValue *tokens;
+};
+
+typedef struct CaosScriptHandle {
+  CaosScript *script;
+  CaosValue *position;
+} CaosScriptHandle;
 
 typedef struct FunctionRef {
   caos_command_t command;
@@ -20,8 +28,7 @@ struct CaosRuntime {
 struct CaosContext {
   CaosRuntime *runtime;
   char *error;
-  void *script;
-  ICaosScript script_iface;
+  CaosScriptHandle script_handle;
   void *user_data;
   std::stack<int> *stack;
 };

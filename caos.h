@@ -10,21 +10,14 @@ extern "C" {
 
 typedef struct CaosRuntime CaosRuntime;
 typedef struct CaosContext CaosContext;
+typedef struct CaosScript CaosScript;
 
 typedef void (*caos_command_t) (CaosContext*);
 typedef CaosValue (*caos_expression_t) (CaosContext*);
 
-typedef void (*caos_script_advance_t) (void*);
-typedef CaosValue (*caos_script_get_t) (void*);
-typedef void (*caos_script_jump_t) (void*, int);
-typedef int (*caos_script_mark_t) (void*);
+// ~ Script ~
 
-struct ICaosScript {
-  caos_script_advance_t advance;
-  caos_script_get_t get;
-  caos_script_jump_t jump;
-  caos_script_mark_t mark;
-};
+RONNIE_API CaosScript* caos_script_from_array (CaosValue*);
 
 // ~ Runtime ~
 
@@ -36,7 +29,7 @@ RONNIE_API void caos_register_function
 
 // ~ Context ~
 
-RONNIE_API CaosContext* caos_context_new(CaosRuntime*, void*, struct ICaosScript);
+RONNIE_API CaosContext* caos_context_new(CaosRuntime*, CaosScript*);
 RONNIE_API void caos_context_destroy(CaosContext*);
 //RONNIE_API void caos_reset (CaosContext*, void*);
 
@@ -67,9 +60,8 @@ RONNIE_API char* caos_get_error (CaosContext*);
 RONNIE_API void caos_set_error (CaosContext*, char*);
 
 // user
+/* RONNIE_API CaosScript* caos_get_script (CaosContext*); */
 RONNIE_API void* caos_user_data (CaosContext*);
-
-RONNIE_API void* caos_get_script (CaosContext*);
 
 #ifdef __cplusplus
 }

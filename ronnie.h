@@ -67,12 +67,7 @@ RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer, CaosLexError**);
 RONNIE_API void caos_lex_error_free (CaosLexError*);
 
 // ~ Helpers ~
-
-RONNIE_API CaosValue* ronnie_script_from_string (enum CaosLexerVersion, CaosLexError**, char*);
-
-// TODO: const CaosRuntime*
-RONNIE_API CaosContext* ronnie_context_new (CaosRuntime*, CaosValue*);
-RONNIE_API void ronnie_context_destroy (CaosContext*);
+RONNIE_API CaosScript* caos_script_from_string (enum CaosLexerVersion, CaosLexError**, char*);
 
 #ifdef __cplusplus
 }

@@ -262,46 +262,7 @@ caos_value_equal (CaosValue left, CaosValue right)
 
 // ~ Helpers ~
 
-typedef struct RonnieScriptRef {
-  CaosValue *script;
-  CaosValue *i;
-} RonnieScriptRef;
-
-void ronnie_script_ref_advance (RonnieScriptRef *ref) { ref->i++; }
-CaosValue ronnie_script_ref_get (RonnieScriptRef *ref) { return *ref->i; }
-void ronnie_script_ref_jump (RonnieScriptRef *ref, int i) { ref->i = ref->script + i; }
-int ronnie_script_ref_mark (RonnieScriptRef *ref) { return ref->i - ref->script; }
-
-struct ICaosScript
-ronnie_script_ref_iface()
-{
-  static struct ICaosScript iface = {
-    (caos_script_advance_t)ronnie_script_ref_advance,
-    (caos_script_get_t)ronnie_script_ref_get,
-    (caos_script_jump_t)ronnie_script_ref_jump,
-    (caos_script_mark_t)ronnie_script_ref_mark
-  };
-  return iface;
-}
-
-CaosContext*
-ronnie_context_new (CaosRuntime *rt, CaosValue *script)
-{
-  RonnieScriptRef *ref = malloc (sizeof (RonnieScriptRef));
-  ref->script = script;
-  ref->i = script;
-  return caos_context_new (rt, ref, ronnie_script_ref_iface());
-}
-
-void
-ronnie_context_destroy (CaosContext *c)
-{
-  RonnieScriptRef *ref = caos_get_script (c);
-  free (ref);
-  caos_context_destroy (c);
-}
-
-CaosValue* ronnie_script_from_string (enum CaosLexerVersion version, CaosLexError **e, char *source) {
+CaosScript* caos_script_from_string (enum CaosLexerVersion version, CaosLexError **e, char *source) {
   int i, m;
   i = m = 0;
   CaosLexer lexer = caos_lexer (version, source);
@@ -324,5 +285,5 @@ CaosValue* ronnie_script_from_string (enum CaosLexerVersion version, CaosLexErro
     if (caos_value_is_eoi (val)) break;
   }
   
-  return script;
+  return caos_script_from_array (script);
 }

@@ -11,6 +11,14 @@
 
 #define ERROR(msg) caos_set_error(context, (char*)msg)
 
+CaosScript*
+caos_script_from_array (CaosValue *tokens)
+{
+  CaosScript *s = (CaosScript*) malloc (sizeof (*s));
+    s->tokens = tokens;
+  return s;
+}
+
 CaosRuntime*
 caos_runtime_new() {
   CaosRuntime *runtime = new CaosRuntime();
@@ -36,12 +44,13 @@ caos_register_function (
 }
 
 CaosContext*
-caos_context_new (CaosRuntime *runtime, void *script, ICaosScript iface) {
+caos_context_new (CaosRuntime *runtime, CaosScript *script) {
+  CaosScriptHandle handle = { script, script->tokens };
+
   CaosContext *context = (CaosContext*) malloc (sizeof (*context)); {
     context->runtime = runtime;
     context->error = NULL;
-    context->script = script;
-    context->script_iface = iface;
+    context->script_handle = handle;
     context->user_data = NULL;
     context->stack = new std::stack <int>();
   }
@@ -54,24 +63,27 @@ caos_context_destroy (CaosContext *c) {
   free (c);
 }
 
-void
+/*void
 caos_reset (CaosContext *context, void *script) {
   context->error = NULL;
   context->script = script;
   context->user_data = NULL;
   context->stack = new std::stack <int>();
-}
+}*/
 
 int
 caos_mark (CaosContext *context)
 {
-  return context->script_iface.mark (context->script);
+  return context->script_handle.position
+       - context->script_handle.script->tokens;
 }
 
 void
 caos_jump (CaosContext *context, int mark)
 {
-  context->script_iface.jump (context->script, mark);
+  context->script_handle.position =
+    context->script_handle.script->tokens
+  + mark;
 }
 
 void
@@ -101,7 +113,7 @@ caos_current_token (CaosContext *context)
     ERROR ("Expected token, got EOI");
     return caos_value_null();
   }
-  return context->script_iface.get (context->script);
+  return *context->script_handle.position;
 }
 
 void
@@ -126,7 +138,7 @@ bool
 caos_done (CaosContext *context)
 {
   return context->error ||
-         caos_value_is_eoi (context->script_iface.get (context->script));
+         caos_value_is_eoi (*context->script_handle.position);
 }
 
 void caos_advance_to_next_symbol (CaosContext *context)
@@ -249,7 +261,7 @@ caos_get_expression (CaosContext *context)
 void
 caos_advance (CaosContext *context)
 {
-  context->script_iface.advance (context->script);
+  context->script_handle.position++;
 }
 
 void
@@ -270,8 +282,10 @@ caos_user_data (CaosContext *context)
   return context->user_data;
 }
 
+/*
 void*
 caos_get_script (CaosContext *context)
 {
   return context->script;
 }
+*/
