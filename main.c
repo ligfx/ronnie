@@ -350,4 +350,56 @@ int main ()
       }
     }
   }
+
+/*
+  
+  {
+    CaosValue *script = ronnie_script_from_string (CAOS_EXODUS, "notacommand");
+    CaosContext *context = ronnie_context_new (runtime, script);
+    
+    // Expected command, got Symbol:notacommand, at line 1
+    caos_tick (context, NULL);
+    printf ("%s\n", caos_get_error(context));
+  }
+  
+  {
+    CaosValue *script = ronnie_script_from_string (CAOS_EXODUS, "outv hi");
+    CaosContext *context = ronnie_context_new (runtime, script);
+    
+    // Expected decimal, got Symbol:hi, at line 1, at Command:outv
+    // Expected expression
+    // Expected decimal expression
+    // TODO: Not very easy to explain this..
+    // Just learn what the error messages mean!
+    caos_tick (context, NULL);
+    printf ("%s\n", caos_get_error(context));
+  }
+  
+  {
+    CaosValue *script = ronnie_script_from_string (CAOS_EXODUS, "outv \"phi\"");
+    CaosContext *context = ronnie_context_new (runtime, script);
+    
+    // Expected decimal expression, got String:"phi", at line 1, at Command:outv
+    caos_tick (context, NULL);
+    printf ("%s\n", caos_get_error(context));
+  }
+  
+  {
+    CaosValue *script = ronnie_script_from_string (CAOS_EXODUS, "outs rand 5 6");
+    CaosContext *context = ronnie_context_new (runtime, script);
+    
+    // Expected string expression, got Integer:5, at line 1, at Command:outs
+    // TODO: Could we do static analysis? Have each function register it's
+    //  expected arguments and return value, then run over it to make sure?
+    //  We could then differentiate between load-time analysis and run-time
+    //  analysis. Expense: an extra pass. Benefit: knowing problems ahead of time
+    //  Actually, all functions already register their arguments, they just
+    //  don't register their return types. Expense: explicitly calling out return
+    //  types of expressions. Are any expressions, say, bimorphic in their return
+    //  types? I don't think so.. They should return either one type or any type.
+    //  But I'm not solid on this.
+    caos_tick (context, NULL);
+    printf ("%s\n", caos_get_error(context));
+  }
+  */
 }
