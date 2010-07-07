@@ -148,7 +148,8 @@ CaosValue lex_number (CaosLexer *l, CaosLexError **e) {
   
   while (isdigit (*l->p)) l->p++;
 //  advance_while (l, (bool(*)(char))&isdigit);
-  if ('.' == *l->p++) {
+  if ('.' == *l->p) {
+    l->p++;
     while (isdigit (*l->p)) l->p++;
 //    advance_while (l, (bool(*)(char))&isdigit);
   
@@ -189,7 +190,7 @@ int lex_integer_value (CaosLexer *l)
   assert (isdigit (*l->p));
   while (isdigit (*l->p)) l->p++;
 //  advance_while (l, (bool(*)(char))&isdigit);
-  //printf ("[lexer] int: %i\n", atoi(basep));
+  // printf ("[lexer] int: %i\n", atoi(basep));
   return atoi (basep);
 }
 
