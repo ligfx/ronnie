@@ -81,3 +81,34 @@ TEST_F (Lexer, LineReporting) {
   EXPECT_EQ (CAOS_UNCLOSED_BYTESTRING, error->type);
   EXPECT_EQ (7, error->lineno);
 }
+
+std::ostream&
+operator<< (std::ostream& o, CaosValue v)
+{
+  if (caos_value_is_integer (v)) o << caos_value_to_integer (v);
+  else o << "value";
+  return o;
+}
+
+void caos_assert_eq (CaosContext *c)
+{
+  CaosValue l = caos_arg_value(c);
+  CaosValue r = caos_arg_value(c);
+  if (caos_get_error (c)) return;
+  
+  EXPECT_PRED2 (caos_value_equal, l, r);
+}
+
+TEST (Machine, Test) {
+  CaosRuntime *r = caos_runtime_new();
+  caos_register_function (r, (char*)"assert-eq", caos_assert_eq, 0);
+  
+  CaosLexError *error = 0;
+  CaosScript *s = caos_script_from_string (CAOS_EXODUS, &error, (char*)"assert-eq 0 1");
+  ASSERT_EQ (0, error);
+  
+  CaosContext *c = caos_context_new (r, s);
+  
+  caos_tick (c, NULL);
+  ASSERT_EQ (caos_get_error (c), NULL);
+}
