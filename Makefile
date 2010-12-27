@@ -3,33 +3,33 @@ override CFLAGS := -fvisibility=hidden -fpic -ansi -Wall -Wno-comment -Werror -W
 all: libronnie.so include main test
 
 include: caos.h value.h ronnie.h common.h
-	@mkdir -p include/ronnie
 	@echo " CP $^ => include/ronnie/"
+	@mkdir -p include/ronnie
 	@cp $^ include/ronnie
 
 test: test.o libronnie.so
-	@gcc $^ -L. -lronnie -lgtest_main -o $@ -Wl,-rpath,.
 	@echo " LD $^ => $@"
+	@gcc $^ -L. -lronnie -lgtest_main -o $@ -Wl,-rpath,.
 
 main: main.o libronnie.so
-	@${CC} $^ -L. -lronnie -o $@ -Wl,-rpath,.
 	@echo " LD $^ => $@"
+	@${CC} $^ -L. -lronnie -o $@ -Wl,-rpath,.
 
 main.o: include main.c
-	@${CC} -c -Iinclude main.c ${CFLAGS} -std=c99
 	@echo " CC main.c => $@"
+	@${CC} -c -Iinclude main.c ${CFLAGS} -std=c99
 
 libronnie.so: caos.o value.o ronnie.o lexer.o
-	@${CC} -shared -lstdc++ $^ -o $@
 	@echo " LD $^ => $@"
+	@${CC} -shared -lstdc++ $^ -o $@
 
 %.o: %.c
-	@${CC} -c $^ ${CFLAGS} -std=c99
 	@echo " CC $^ => $@"
+	@${CC} -c $^ ${CFLAGS} -std=c99
 
 %.o: %.cpp
-	@${CC} -c $^ ${CFLAGS}
 	@echo " CC $^ => $@"
+	@${CC} -c $^ ${CFLAGS}
 
 clean:
 	-rm main libronnie.so test
