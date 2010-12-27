@@ -9,7 +9,7 @@ include: caos.h value.h ronnie.h common.h
 
 test: test.o libronnie.so
 	@echo " LD $^ => $@"
-	@gcc $^ -L. -lronnie -lgtest_main -o $@ -Wl,-rpath,.
+	@${CXX} $^ -L. -lronnie -lgtest -lgtest_main -o $@ -Wl,-rpath,.
 
 main: main.o libronnie.so
 	@echo " LD $^ => $@"
@@ -29,7 +29,7 @@ libronnie.so: caos.o value.o ronnie.o lexer.o
 
 %.o: %.cpp
 	@echo " CC $^ => $@"
-	@${CC} -c $^ ${CFLAGS}
+	@${CXX} -c $^ ${CFLAGS}
 
 clean:
 	-rm main libronnie.so test
