@@ -1,85 +1,49 @@
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include "ronnie.h"
 
 #include <gtest/gtest.h>
 
-#ifdef NULL
-#undef NULL
-#endif
-#define NULL ((void*)0)
+void test_error_with_version (char *str, CaosLexErrorType err_type, enum CaosLexerVersion version)
+{
+	CaosLexError *error = NULL;
+	CaosScript *script = NULL;
+	
+	script = caos_script_from_string (version, &error, str);
+	
+	ASSERT_TRUE (error);
+	EXPECT_EQ (error->type, err_type);
+}
+#define test_error(str,err) test_error_with_version(str,err,CAOS_EXODUS)
+#define test_error_albia(str,err) test_error_with_version(str,err,CAOS_ALBIA)
 
-class Lexer : public ::testing::Test {
-  protected:
-  CaosLexError *error;
-  CaosScript *script;
+TEST (Lexer, MisleadingUnaryPlus)    { test_error ("+", CAOS_MISLEADING_UNARY_PLUS); }
+TEST (Lexer, MisleadingUnaryMinus)   { test_error ("-", CAOS_MISLEADING_UNARY_MINUS); }
+TEST (Lexer, UnclosedExodusString)   { test_error ("\"", CAOS_UNCLOSED_STRING); }
+TEST (Lexer, UnclosedAlbianString)   { test_error_albia ("[", CAOS_UNCLOSED_STRING); }
+TEST (Lexer, UnclosedBytestring)     { test_error ("[", CAOS_UNCLOSED_BYTESTRING); }
+TEST (Lexer, NonIntegerInByteString) { test_error ("[hi]", CAOS_BYTESTRING_EXPECTED_INTEGER); }
+TEST (Lexer, MisleadingSingleQuote)  { test_error ("'test'", CAOS_MISLEADING_SINGLE_QUOTE); }
+TEST (Lexer, UnrecognizedCharacter)  {
+	CaosLexError *error = NULL;
+	CaosScript *script = NULL;
+	
+	script = caos_script_from_string (CAOS_EXODUS, &error, "^");
   
-  public:
-  Lexer() : error (0) {}
-  virtual ~Lexer() { delete error; }
-};
-
-TEST_F (Lexer, MisleadingUnaryPlus) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*) "+");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (error->type, CAOS_MISLEADING_UNARY_PLUS);
+	ASSERT_TRUE (error);
+	EXPECT_EQ (error->type, CAOS_UNRECOGNIZED_CHARACTER);
+	EXPECT_EQ ('^', *((char*)error->data));
 }
 
-TEST_F (Lexer, MisleadingUnaryMinus) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*) "-");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (error->type, CAOS_MISLEADING_UNARY_MINUS);
-}
+TEST (Lexer, LineReporting) {
+	CaosLexError *error = NULL;
+	CaosScript *script = NULL;
+	
+	script = caos_script_from_string (CAOS_EXODUS, &error, "\n\nhi \n [6 7 \n 8]j\n \"ph\ni\" 42 [");
 
-TEST_F (Lexer, UnclosedExodusString) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*)"\"");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (error->type, CAOS_UNCLOSED_STRING);
-}
- 
-TEST_F (Lexer, UnclosedAlbianString) {
-  script = caos_script_from_string (CAOS_ALBIA, &error, (char*)"[");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (error->type, CAOS_UNCLOSED_STRING);
-}
-  
-TEST_F (Lexer, UnclosedBytestring) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*)"[");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (CAOS_UNCLOSED_BYTESTRING, error->type);
-}
-
-TEST_F (Lexer, NonIntegerInByteString) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*)"[hi]");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (CAOS_BYTESTRING_EXPECTED_INTEGER, error->type);
-}
-
-TEST_F (Lexer, MisleadingSingleQuote) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*)"'test'");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (error->type, CAOS_MISLEADING_SINGLE_QUOTE);
-}
-
-TEST_F (Lexer, UnrecognizedCharacter) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*)"^");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (error->type, CAOS_UNRECOGNIZED_CHARACTER);
-  EXPECT_EQ ('^', *((char*)error->data));
-}
-
-TEST_F (Lexer, LineReporting) {
-  script = caos_script_from_string (CAOS_EXODUS, &error, (char*)"\n\nhi \n [6 7 \n 8]j\n \"ph\ni\" 42 [");
-  
-  ASSERT_NE (error, NULL);
-  EXPECT_EQ (CAOS_UNCLOSED_BYTESTRING, error->type);
-  EXPECT_EQ (7, error->lineno);
+	ASSERT_TRUE (error);
+	EXPECT_EQ (CAOS_UNCLOSED_BYTESTRING, error->type);
+	EXPECT_EQ (7, error->lineno);
 }
 
 std::ostream&
@@ -101,14 +65,14 @@ void caos_assert_eq (CaosContext *c)
 
 TEST (Machine, Test) {
   CaosRuntime *r = caos_runtime_new();
-  caos_register_function (r, (char*)"assert-eq", caos_assert_eq, 0);
+  caos_register_function (r, "assert-eq", caos_assert_eq, NULL);
   
-  CaosLexError *error = 0;
-  CaosScript *s = caos_script_from_string (CAOS_EXODUS, &error, (char*)"assert-eq 0 1");
-  ASSERT_EQ (0, error);
+  CaosLexError *error = NULL;
+  CaosScript *s = caos_script_from_string (CAOS_EXODUS, &error, "assert-eq 0 1");
+  ASSERT_FALSE (error);
   
   CaosContext *c = caos_context_new (r, s);
   
   caos_tick (c, NULL);
-  ASSERT_EQ (caos_get_error (c), NULL);
+  ASSERT_FALSE (caos_get_error (c));
 }
