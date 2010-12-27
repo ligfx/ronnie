@@ -68,7 +68,7 @@ TEST (Machine, Test) {
   caos_register_function (r, "assert-eq", caos_assert_eq, NULL);
   
   CaosLexError *error = NULL;
-  CaosScript *s = caos_script_from_string (CAOS_EXODUS, &error, "assert-eq 0 1");
+  CaosScript *s = caos_script_from_string (CAOS_EXODUS, &error, "assert-eq 7 7");
   ASSERT_FALSE (error);
   
   CaosContext *c = caos_context_new (r, s);
