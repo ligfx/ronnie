@@ -13,30 +13,19 @@ caos_value_symbol (char *s)
 CaosValue
 caos_value_eoi ()
 {
-  CaosValue val = { CAOS_EOI };
+  CaosValue val = { CAOS_EOI, 0, 0, 0 };
   return val;
 }
 
 CaosValue
 caos_value_null()
 {
-  CaosValue val;
-  val.type = CAOS_NULL;
-  return val;
+	CaosValue val = { CAOS_NULL, 0, 0, 0 };
+	return val;
 }
 
 bool caos_value_is_eoi (CaosValue val) { return val.type == CAOS_EOI; }
-
-bool
-caos_value_is_symbol (CaosValue val)
-{
-  return val.type == CAOS_SYMBOL;
-}
-
-bool
-caos_value_is_null (CaosValue val)
-{
-  return val.type == CAOS_NULL;
-}
+bool caos_value_is_symbol (CaosValue val) { return val.type == CAOS_SYMBOL; }
+bool caos_value_is_null (CaosValue val) { return val.type == CAOS_NULL; }
 
 char* caos_value_to_symbol (CaosValue val) { return (char*)val.value; }

@@ -171,30 +171,28 @@ enum RonnieType {
 CaosValue
 caos_value_int (int i)
 {
-  CaosValue val = { CAOS_INT, i };
+  CaosValue val = { CAOS_INT, i, 0, 0 };
   return val;
 }
 
 CaosValue
 caos_value_string (char *s)
 {
-  CaosValue val = { CAOS_STRING, (intptr_t)s };
+  CaosValue val = { CAOS_STRING, (intptr_t)s, 0, 0 };
   return val;
 }
 
 CaosValue
 caos_value_float (float f)
 {
-  CaosValue val;
-  val.type = CAOS_FLOAT;
-  val.value = *(intptr_t*)&f;
-  return val;
+	CaosValue val = { CAOS_FLOAT, *(intptr_t*)&f, 0, 0 };
+	return val;
 }
 
 CaosValue
 caos_value_bytestring (int *a)
 {
-  CaosValue val = { CAOS_BYTESTRING, (intptr_t)a };
+  CaosValue val = { CAOS_BYTESTRING, (intptr_t)a, 0, 0 };
   return val;
 }
 

@@ -71,8 +71,10 @@ static const CaosType CAOS_EOI = 1;
 static const CaosType CAOS_SYMBOL = 2;
 
 typedef struct CaosValue {
-  CaosType type;
-  intptr_t value;
+	CaosType type;
+	intptr_t value;
+	unsigned int location;
+	unsigned int extent;
 } CaosValue;
 
 RONNIE_API CaosValue caos_value_symbol (char*);
