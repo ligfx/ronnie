@@ -40,9 +40,10 @@ enum CaosLexerVersion {
 };
 
 typedef struct CaosLexer {
-  char *script, *p;
-  unsigned int lineno;
-  enum CaosLexerVersion version;
+	const char *script;
+	char *p;
+	unsigned int lineno;
+	enum CaosLexerVersion version;
 } CaosLexer;
 
 typedef enum {
@@ -62,7 +63,7 @@ typedef struct CaosLexError {
     void *data;
 } CaosLexError;
 
-RONNIE_API CaosLexer caos_lexer (enum CaosLexerVersion, char *script);
+RONNIE_API CaosLexer caos_lexer (enum CaosLexerVersion, const char *script);
 RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer, CaosLexError**);
 RONNIE_API void caos_lex_error_free (CaosLexError*);
 

@@ -10,8 +10,8 @@
 // ~ Lexer ~
 //
 
-CaosLexer caos_lexer (enum CaosLexerVersion version, char *script) {
-  CaosLexer lex = { script, script, 1, version };
+CaosLexer caos_lexer (enum CaosLexerVersion version, const char *script) {
+  CaosLexer lex = { script, (char*)script, 1, version };
   return lex;
 }
 
