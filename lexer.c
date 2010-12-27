@@ -315,48 +315,66 @@ CaosValue lex_exodus_string (CaosLexer *l, CaosLexError **e)
 //
 // THE BIG DADDY
 // 
+CaosValue the_big_daddy (CaosLexer *l, CaosLexError **e)
+{
+	skip_whitespace_and_comments(l);
+	
+	if (!*l->p) return caos_value_eoi();
+	
+	if (isdigit (*l->p)) return lex_number (l, e);
+	
+	switch (*l->p)
+	{
+		case '+':
+		case '-': return lex_number (l, e);
+		case '%': return lex_integer_binary (l);
+		case '\'': return lex_integer_character (l, e);
+		case '=': l->p++; return caos_value_symbol ("eq");
+		case '<': l->p++; switch (*l->p) {
+			case '>': l->p++; return caos_value_symbol ("ne");
+			case '=': l->p++; return caos_value_symbol ("le");
+			default: return caos_value_symbol ("lt"); }
+		case '>': switch (*l->p) {
+			case '=': l->p++; return caos_value_symbol ("ge");
+			default: return caos_value_symbol ("gt"); }
+	}
+	
+	if (issymchar (*l->p)) return lex_symbol(l);
+	
+	if ('"' == *l->p) {
+		assert (CAOS_EXODUS == l->version);
+		return lex_exodus_string (l, e);
+	}
+	
+	if ('[' == *l->p) {
+		switch (l->version) {
+			case CAOS_ALBIA:
+				return lex_albian_string (l, e);
+			case CAOS_EXODUS:
+				return lex_bytestring (l, e);
+			default:
+				assert(false);
+		}
+	}
+	
+	*e = caos_lex_error_new (CAOS_UNRECOGNIZED_CHARACTER, l->lineno, l->p);
+	return caos_value_null();
+	
+}
+
 CaosValue caos_lexer_lex (CaosLexer *l, CaosLexError **e)
 {
-  skip_whitespace_and_comments(l);
-
-  if (!*l->p) return caos_value_eoi();
-  
-  if (isdigit (*l->p)) return lex_number (l, e);
-  
-  switch (*l->p)
-  {
-    case '+':
-    case '-': return lex_number (l, e);
-    case '%': return lex_integer_binary (l);
-    case '\'': return lex_integer_character (l, e);
-    case '=': l->p++; return caos_value_symbol ("eq");
-    case '<': l->p++; switch (*l->p) {
-      case '>': l->p++; return caos_value_symbol ("ne");
-      case '=': l->p++; return caos_value_symbol ("le");
-      default: return caos_value_symbol ("lt"); }
-    case '>': switch (*l->p) {
-      case '=': l->p++; return caos_value_symbol ("ge");
-      default: return caos_value_symbol ("gt"); }
-  }
-  
-  if (issymchar (*l->p)) return lex_symbol(l);
-  
-  if ('"' == *l->p) {
-    assert (CAOS_EXODUS == l->version);
-    return lex_exodus_string (l, e);
-  }
-  
-  if ('[' == *l->p) {
-    switch (l->version) {
-    case CAOS_ALBIA:
-      return lex_albian_string (l, e);
-    case CAOS_EXODUS:
-      return lex_bytestring (l, e);
-    default:
-      assert(false);
-    }
-  }
-  
-  *e = caos_lex_error_new (CAOS_UNRECOGNIZED_CHARACTER, l->lineno, l->p);
-  return caos_value_null();
+	// This is a small shim on top of The Big Daddy (c)
+	// because it's easier to add character information this way
+	
+	char *old_p;
+	old_p = l->p;
+	CaosValue val = the_big_daddy (l, e);
+	if (*e) return val;
+	
+	while (iswhitespace (*old_p)) ++old_p;
+	val.location = old_p - l->script;
+	val.extent = l->p - old_p;
+	
+	return val;
 }
