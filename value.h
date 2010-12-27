@@ -66,9 +66,9 @@ extern "C" {
 
 // Enums are nice, but not extendable
 typedef int CaosType;
-static CaosType CAOS_NULL = 0;
-static CaosType CAOS_EOI = 1;
-static CaosType CAOS_SYMBOL = 2;
+static const CaosType CAOS_NULL = 0;
+static const CaosType CAOS_EOI = 1;
+static const CaosType CAOS_SYMBOL = 2;
 
 typedef struct CaosValue {
   CaosType type;
