@@ -1,11 +1,18 @@
 override CFLAGS := -fvisibility=hidden -fpic -ansi -Wall -Wno-comment -Werror -Wno-error=unused-variable -g $(CFLAGS)
 
-all: libronnie.so include main test
+all: libronnie.so include main test highlight
 
 include: caos.h value.h ronnie.h common.h
 	@echo " CP $^ => include/ronnie/"
 	@mkdir -p include/ronnie
 	@cp $^ include/ronnie
+
+highlight: highlight.o libronnie.so
+	@echo " LD $^ => $@"
+	@${CXX} $^ -L. -lronnie -o $@ -Wl,-rpath,.
+
+highlight.o: CFLAGS += -Iinclude
+	
 
 test: test.o libronnie.so
 	@echo " LD $^ => $@"
@@ -32,7 +39,7 @@ libronnie.so: caos.o value.o ronnie.o lexer.o
 	@${CXX} -c $^ ${CFLAGS}
 
 clean:
-	-rm main libronnie.so test
+	-rm main libronnie.so test highlight
 	-rm -frv *.o
 	-rm *~
 	-rm -frv include
