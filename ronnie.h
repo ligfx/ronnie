@@ -32,6 +32,13 @@ RONNIE_API int*  caos_value_to_bytestring (CaosValue);
 
 RONNIE_API bool caos_value_equal (CaosValue, CaosValue);
 
+enum {
+	RONNIE_EXPECTED_BYTESTRING = 50,
+	RONNIE_EXPECTED_FLOAT,
+	RONNIE_EXPECTED_INTEGER,
+	RONNIE_EXPECTED_STRING,
+} RonnieErrorType;
+	
 // ~ Lexer ~
 
 enum CaosLexerVersion {

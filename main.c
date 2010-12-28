@@ -42,6 +42,8 @@ void c_outs (CaosContext *context)
   printf ("%s\n", string);
 }
 
+static int RONNIE_EXPECTED_DECIMAL = 50;
+
 void c_outv (CaosContext *context)
 {
   CaosValue v = caos_arg_value (context);
@@ -50,7 +52,8 @@ void c_outv (CaosContext *context)
   else if (caos_value_is_float (v))
     printf ("%f\n", caos_value_to_float (v));
   else
-    caos_set_error (context, (char*)"Expected decimal");
+    caos_set_error (context, RONNIE_EXPECTED_DECIMAL, v);
+  // TODO: What if we get the value from an expression? The error won't mean anything
 }
 
 void c_new_simp (CaosContext *context)
@@ -140,7 +143,7 @@ c_doif (CaosContext *context) {
   caos_stack_push (context, match);
   // caos_stack_push (context, 0);
   if (!match)
-    caos_fast_forward (context, "elif", "else", "endi", 0);
+    caos_fast_forward (context, "elif", "else", "endi", NULL);
   // Stack [already_matched]
 }
 
@@ -292,7 +295,7 @@ int main ()
 
     while (!caos_done (context)) {
       caos_tick (context, NULL);
-      if ((error = caos_get_error (context))) printf ("[ERROR] %s\n", error);
+//      if ((error = caos_get_error (context))) printf ("[ERROR] %s\n", error);
     }
   }
 
@@ -316,23 +319,15 @@ int main ()
 
       while (!caos_done (context)) {
         caos_tick (context, NULL);
-        char *error = caos_get_error (context);
-        if (error) printf ("[ERROR] %s\n", error);
+ //       char *error = caos_get_error (context);
+ //       if (error) printf ("[ERROR] %s\n", error);
       }
     }
+	
   }
 
-/*
-  
-  {
-    CaosValue *script = ronnie_script_from_string (CAOS_EXODUS, "notacommand");
-    CaosContext *context = ronnie_context_new (runtime, script);
-    
-    // Expected command, got Symbol:notacommand, at line 1
-    caos_tick (context, NULL);
-    printf ("%s\n", caos_get_error(context));
-  }
-  
+/*	
+	
   {
     CaosValue *script = ronnie_script_from_string (CAOS_EXODUS, "outv hi");
     CaosContext *context = ronnie_context_new (runtime, script);

@@ -27,7 +27,7 @@ struct CaosRuntime {
 
 struct CaosContext {
   CaosRuntime *runtime;
-  char *error;
+  CaosError *error;
   CaosScriptHandle script_handle;
   void *user_data;
   std::stack<int> *stack;

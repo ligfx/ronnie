@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ERROR(msg) caos_set_error(context, (char*)msg)
+#define ERROR(type,token) caos_set_error(context, type, token)
 
 // ~ arg_bool ~
 
@@ -72,7 +72,8 @@ caos_arg_bool (CaosContext *context)
   right = caos_arg_value (context);
   if (caos_get_error (context)) return false;
   if (!compare_func) {
-    caos_set_error (context, (char*)"No such comparison");
+	// TODO:
+	// ERROR (RONNIE_EXPECTED_COMPARISON,
     return false;
   }
   
@@ -94,7 +95,8 @@ caos_arg_bool (CaosContext *context)
     right = caos_arg_value (context);
     if (caos_get_error (context)) return false;
     if (!compare_func) {
-      caos_set_error (context, (char*)"No such comparison");
+	  // TODO:
+	  // ERROR (RONNIE_EXPECTED_COMPARISON,
       return false;
     }
 
@@ -112,7 +114,7 @@ caos_arg_float (CaosContext *context)
 {
   CaosValue next = caos_arg_value (context);
   if (!caos_value_is_float (next)) {
-    ERROR ("Expected float");
+    ERROR (RONNIE_EXPECTED_FLOAT, next);
     return -42;
   }
 
@@ -125,7 +127,7 @@ caos_arg_int (CaosContext *context)
 {
   CaosValue next = caos_arg_value (context);
   if (!caos_value_is_integer (next)) {
-    ERROR ("Expected integer");
+    ERROR (RONNIE_EXPECTED_INTEGER, next);
     return -42;
   }
 
@@ -138,7 +140,7 @@ caos_arg_string (CaosContext *context)
 {
   CaosValue next = caos_arg_value (context);
   if (!caos_value_is_string (next)) {
-    ERROR ("Expected string");
+    ERROR (RONNIE_EXPECTED_STRING, next);
     return NULL;
   }
 
@@ -151,7 +153,7 @@ caos_arg_bytestring (CaosContext *context)
 {
   CaosValue next = caos_arg_value (context);
   if (!caos_value_is_bytestring (next)) {
-    ERROR ("Expected byte-string");
+    ERROR (RONNIE_EXPECTED_BYTESTRING, next);
     return NULL;
   }
   

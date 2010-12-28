@@ -63,7 +63,7 @@ void caos_assert_eq (CaosContext *c)
   EXPECT_PRED2 (caos_value_equal, l, r);
 }
 
-TEST (Machine, Test) {
+TEST (Runtime, Test) {
   CaosRuntime *r = caos_runtime_new();
   caos_register_function (r, "assert-eq", caos_assert_eq, NULL);
   
@@ -75,4 +75,98 @@ TEST (Machine, Test) {
   
   caos_tick (c, NULL);
   ASSERT_FALSE (caos_get_error (c));
+}
+
+TEST (RuntimeErrors, ExpectedCommand) {
+	CaosRuntime *runtime = caos_runtime_new();
+	
+	CaosLexError *lex_error = NULL;
+	CaosScript *script = caos_script_from_string (CAOS_EXODUS, &lex_error, "notacommand ");
+	ASSERT_FALSE (lex_error);
+
+	CaosContext *context = caos_context_new (runtime, script);
+
+	// Expected command, got Symbol:notacommand, at line 1
+	caos_tick (context, NULL);
+	CaosError *error = NULL;
+	error = caos_get_error (context);
+	ASSERT_TRUE (error);  
+
+	EXPECT_EQ (CAOS_EXPECTED_COMMAND, error->type);
+	EXPECT_PRED1 (caos_value_is_symbol, error->token);
+	EXPECT_STREQ ("notacommand", caos_value_to_symbol (error->token));
+}
+
+void c_outs (CaosContext *context)
+{ 
+	char *string = caos_arg_string (context);
+	if (caos_get_error (context)) return;
+}
+
+TEST (RuntimeErrors, ExpectedExpression) {
+	CaosRuntime *runtime = caos_runtime_new();
+	caos_register_function (runtime, "outs", c_outs, NULL);
+	
+	
+	CaosLexError *lex_error = NULL;
+	CaosScript *script = caos_script_from_string (CAOS_EXODUS, &lex_error, "outs outs");
+	ASSERT_FALSE (lex_error);
+	
+	CaosContext *context = caos_context_new (runtime, script);
+	
+	caos_tick (context, NULL);
+	CaosError *error = NULL;
+	error = caos_get_error (context);
+	ASSERT_TRUE (error);  
+	
+	EXPECT_EQ (CAOS_EXPECTED_EXPRESSION, error->type);
+	EXPECT_PRED1 (caos_value_is_symbol, error->token);
+	EXPECT_STREQ ("outs", caos_value_to_symbol (error->token));
+}
+
+void
+c_doif (CaosContext *context) {
+	bool match = caos_arg_bool (context);
+	if (caos_get_error (context)) return;
+	
+	if (!match)
+		caos_fast_forward (context, "elif", "else", "endi", 0);
+}
+
+TEST (RuntimeErrors, FailedToFastForward) {
+	CaosRuntime *runtime = caos_runtime_new();
+	caos_register_function (runtime, "doif", c_doif, NULL);
+	
+	
+	CaosLexError *lex_error = NULL;
+	CaosScript *script = caos_script_from_string (CAOS_EXODUS, &lex_error, "doif 0 = 4");
+	ASSERT_FALSE (lex_error);
+	
+	CaosContext *context = caos_context_new (runtime, script);
+	
+	caos_tick (context, NULL);
+	CaosError *error = NULL;
+	error = caos_get_error (context);
+	ASSERT_TRUE (error);  
+	
+	EXPECT_EQ (CAOS_FAILED_TO_FAST_FORWARD, error->type);
+	EXPECT_PRED1 (caos_value_is_null, error->token);
+}
+
+TEST (RuntimeErrors, UnexpectedEOI) {
+	CaosRuntime *runtime = caos_runtime_new();
+	
+	CaosLexError *lex_error = NULL;
+	CaosScript *script = caos_script_from_string (CAOS_EXODUS, &lex_error, "");
+	ASSERT_FALSE (lex_error);
+	
+	CaosContext *context = caos_context_new (runtime, script);
+	
+	caos_tick (context, NULL);
+	CaosError *error = NULL;
+	error = caos_get_error (context);
+	ASSERT_TRUE (error);  
+	
+	EXPECT_EQ (CAOS_UNEXPECTED_EOI, error->type);
+	EXPECT_PRED1 (caos_value_is_null, error->token);
 }

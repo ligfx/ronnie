@@ -9,13 +9,13 @@
 
 #include <list>
 
-#define ERROR(msg) caos_set_error(context, (char*)msg)
+#define ERROR(type,token) caos_set_error(context, type, token)
 
 CaosScript*
 caos_script_from_array (CaosValue *tokens)
 {
   CaosScript *s = (CaosScript*) malloc (sizeof (*s));
-    s->tokens = tokens;
+  s->tokens = tokens;
   return s;
 }
 
@@ -110,28 +110,33 @@ CaosValue
 caos_current_token (CaosContext *context)
 {
   if (caos_done (context)) {
-    ERROR ("Expected token, got EOI");
+    ERROR (CAOS_UNEXPECTED_EOI, caos_value_null());
     return caos_value_null();
   }
   return *context->script_handle.position;
 }
 
 void
-caos_set_error (CaosContext *context, char *message)
+caos_set_error (CaosContext *context, CaosErrorType type, CaosValue token)
 {
-  if (!context->error) context->error = message;
+	if (!context->error) {
+		context->error = (CaosError*) malloc (sizeof (CaosError));
+		context->error->type = type;
+		context->error->token = token;
+	}
 }
 
-char*
+CaosError*
 caos_get_error (CaosContext *context)
 {
-  return context->error;
+	return context->error;
 }
 
 void
-caos_override_error (CaosContext *context, char *msg)
+caos_clear_error (CaosContext *context)
 {
-  context->error = msg;
+	free (context->error);
+	context->error = NULL;
 }
 
 bool
@@ -170,7 +175,8 @@ caos_fast_forward (CaosContext *context, ...)
     CaosValue sym = caos_current_token(context);
     if (caos_get_error (context)) {
       // The only error will be on EOI, therefore we can override it
-      caos_override_error (context, (char*)"Couldn't fast forward to symbol");
+	  caos_clear_error (context);
+	  ERROR (CAOS_FAILED_TO_FAST_FORWARD, sym);
       return;
     }
     char *str = caos_value_to_symbol (sym);
@@ -205,8 +211,7 @@ caos_arg_value (CaosContext *context)
       if (expr)
         ret = expr (context);
       else {
-        //printf ("%s\n", caos_value_to_symbol (token));
-        ERROR ("No such expression");
+        ERROR (CAOS_EXPECTED_EXPRESSION, token);
       }
   } else {
       ret = token;
@@ -269,9 +274,12 @@ caos_tick (CaosContext *context, void *user_data)
 {
   context->user_data = user_data;
   {
+	CaosValue token = caos_current_token(context);
     caos_command_t command = caos_get_command (context);
     if (command) command (context);
-    else ERROR ("Expected command");
+    else {
+		ERROR (CAOS_EXPECTED_COMMAND,token);
+	}
   }
   context->user_data = NULL;
 }

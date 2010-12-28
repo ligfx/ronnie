@@ -11,6 +11,7 @@ extern "C" {
 typedef struct CaosRuntime CaosRuntime;
 typedef struct CaosContext CaosContext;
 typedef struct CaosScript CaosScript;
+typedef struct CaosError CaosError;
 
 typedef void (*caos_command_t) (CaosContext*);
 typedef CaosValue (*caos_expression_t) (CaosContext*);
@@ -56,8 +57,23 @@ RONNIE_API char* caos_arg_symbol (CaosContext*);
 RONNIE_API CaosValue caos_current_token (CaosContext*);
 
 // exceptions
-RONNIE_API char* caos_get_error (CaosContext*);
-RONNIE_API void caos_set_error (CaosContext*, char*);
+typedef int CaosErrorType;
+enum {
+	CAOS_NULL_ERROR = 0,
+	CAOS_EXPECTED_COMMAND,
+	CAOS_EXPECTED_EXPRESSION,
+	CAOS_FAILED_TO_FAST_FORWARD,
+	CAOS_UNEXPECTED_EOI,
+};
+	
+struct CaosError {
+	CaosErrorType type;
+	CaosValue token;
+};
+	
+RONNIE_API CaosError* caos_get_error (CaosContext*);
+RONNIE_API void caos_set_error (CaosContext*, CaosErrorType, CaosValue);
+RONNIE_API void caos_clear_error (CaosContext*);
 
 // user
 /* RONNIE_API CaosScript* caos_get_script (CaosContext*); */
