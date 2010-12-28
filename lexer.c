@@ -113,23 +113,18 @@ void skip_whitespace (CaosLexer *l)
   advance_while (l, &iswhitespace);
 }
 
-bool skip_comment (CaosLexer *l)
+CaosValue lex_comment (CaosLexer *l)
 {
-  if ('*' == *l->p) {
-    advance_until (l, &iseol);
-    return true;
-  }
-  return false;
+	assert ('*' == *l->p++);
+	skip_whitespace(l);
+	char *basep = l->p;
+	advance_until(l, &iseol);
+
+	char *str = strndup (basep, l->p - basep);
+	return caos_value_comment (str);
 }
 
-void skip_whitespace_and_comments (CaosLexer *l)
-{
-start:
-  skip_whitespace (l);
-  if (skip_comment (l)) goto start;
-}
-
-CaosValue lex_number (CaosLexer *l, CaosLexError **e) {
+CaosValue lex_number (CaosLexer *l) {
   char *basep = l->p;
   
   CaosLexErrorType op = CAOS_UNKNOWN;
@@ -142,8 +137,7 @@ CaosValue lex_number (CaosLexer *l, CaosLexError **e) {
   }
   // assert (isdigit (*l->p));
   if (!isdigit (*l->p)) {
-    *e = caos_lex_error_new (op, l->lineno, NULL);
-    return caos_value_null();
+	return caos_value_error (caos_lex_error_new (op, l->lineno, NULL));
   }
   
   while (isdigit (*l->p)) l->p++;
@@ -161,13 +155,12 @@ CaosValue lex_number (CaosLexer *l, CaosLexError **e) {
   }
 }
 
-CaosValue lex_integer_character (CaosLexer *l, CaosLexError **e) {
+CaosValue lex_integer_character (CaosLexer *l) {
   assert ('\'' == *l->p++);
   int i = *l->p++;
   
   if ('\'' != (*l->p++)) {
-    *e = caos_lex_error_new (CAOS_MISLEADING_SINGLE_QUOTE, l->lineno, NULL);
-    return caos_value_null();
+    return caos_value_error (caos_lex_error_new (CAOS_MISLEADING_SINGLE_QUOTE, l->lineno, NULL));
   }
   
   //printf ("[lexer] int: %i\n", i);
@@ -265,27 +258,27 @@ int* lex_bytestring_helper (CaosLexer *l, CaosLexError **e, int i)
   return a;
 }
 
-CaosValue lex_bytestring (CaosLexer *l, CaosLexError **e)
+CaosValue lex_bytestring (CaosLexer *l)
 {
   assert ('[' == *l->p++);
   //printf ("[lexer] bytestring\n");
   
-  int *b = lex_bytestring_helper (l, e, 0);
-  if (!b) return caos_value_null();
+  CaosLexError *error = NULL;
+  int *b = lex_bytestring_helper (l, &error, 0);
+  if (!b) return caos_value_error (error);
   
   assert (']' == *l->p++);
   return caos_value_bytestring (b);
 }
 
-CaosValue lex_albian_string (CaosLexer *l, CaosLexError **e)
+CaosValue lex_albian_string (CaosLexer *l)
 {
   assert ('[' == *l->p++);
   char *basep = l->p;
   advance_until(l, &isrightbracket);
 
   if ('\0' == *l->p) {
-    *e = caos_lex_error_new (CAOS_UNCLOSED_STRING, l->lineno, NULL);
-    return caos_value_null();
+	return caos_value_error (caos_lex_error_new (CAOS_UNCLOSED_STRING, l->lineno, NULL));
   }
   
   char *str = strndup (basep, l->p - basep);
@@ -294,15 +287,14 @@ CaosValue lex_albian_string (CaosLexer *l, CaosLexError **e)
   return caos_value_string (str);
 }
 
-CaosValue lex_exodus_string (CaosLexer *l, CaosLexError **e)
+CaosValue lex_exodus_string (CaosLexer *l)
 {
   assert ('"' == *l->p++);
   char *basep = l->p;
   advance_until(l, &isdoublequote);
 
   if ('\0' == *l->p) {
-    *e = caos_lex_error_new (CAOS_UNCLOSED_STRING, l->lineno, NULL);
-    return caos_value_null();
+    return caos_value_error (caos_lex_error_new (CAOS_UNCLOSED_STRING, l->lineno, NULL));
   }
   
   // TODO: Escape codes!
@@ -315,20 +307,21 @@ CaosValue lex_exodus_string (CaosLexer *l, CaosLexError **e)
 //
 // THE BIG DADDY
 // 
-CaosValue the_big_daddy (CaosLexer *l, CaosLexError **e)
+CaosValue the_big_daddy (CaosLexer *l)
 {
-	skip_whitespace_and_comments(l);
+	skip_whitespace(l);
 	
 	if (!*l->p) return caos_value_eoi();
 	
-	if (isdigit (*l->p)) return lex_number (l, e);
+	if (isdigit (*l->p)) return lex_number (l);
 	
 	switch (*l->p)
 	{
+		case '*': return lex_comment (l);
 		case '+':
-		case '-': return lex_number (l, e);
+		case '-': return lex_number (l);
 		case '%': return lex_integer_binary (l);
-		case '\'': return lex_integer_character (l, e);
+		case '\'': return lex_integer_character (l);
 		case '=': l->p++; return caos_value_symbol ("eq");
 		case '<': l->p++; switch (*l->p) {
 			case '>': l->p++; return caos_value_symbol ("ne");
@@ -343,36 +336,34 @@ CaosValue the_big_daddy (CaosLexer *l, CaosLexError **e)
 	
 	if ('"' == *l->p) {
 		assert (CAOS_EXODUS == l->version);
-		return lex_exodus_string (l, e);
+		return lex_exodus_string (l);
 	}
 	
 	if ('[' == *l->p) {
 		switch (l->version) {
 			case CAOS_ALBIA:
-				return lex_albian_string (l, e);
+				return lex_albian_string (l);
 			case CAOS_EXODUS:
-				return lex_bytestring (l, e);
+				return lex_bytestring (l);
 			default:
 				assert(false);
 		}
 	}
 	
-	*e = caos_lex_error_new (CAOS_UNRECOGNIZED_CHARACTER, l->lineno, l->p);
-	return caos_value_null();
+	return caos_value_error (caos_lex_error_new (CAOS_UNRECOGNIZED_CHARACTER, l->lineno, l->p));
 	
 }
 
-CaosValue caos_lexer_lex (CaosLexer *l, CaosLexError **e)
+CaosValue caos_lexer_lex (CaosLexer *l)
 {
 	// This is a small shim on top of The Big Daddy (c)
 	// because it's easier to add character information this way
 	
 	char *old_p;
 	old_p = l->p;
-	CaosValue val = the_big_daddy (l, e);
-	if (*e) return val;
-	
+	CaosValue val = the_big_daddy (l);
 	while (iswhitespace (*old_p)) ++old_p;
+	
 	val.location = old_p - l->script;
 	val.extent = l->p - old_p;
 	val.line = l->lineno;

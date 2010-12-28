@@ -167,7 +167,9 @@ enum RonnieType {
   CAOS_STRING = 50,
   CAOS_INT,
   CAOS_FLOAT,
-  CAOS_BYTESTRING
+  CAOS_BYTESTRING,
+  CAOS_LEX_COMMENT,
+  CAOS_LEX_ERROR,
 };
 
 CaosValue
@@ -246,6 +248,15 @@ caos_value_to_bytestring (CaosValue val)
   return (int*)val.value;
 }
 
+CaosValue caos_value_error (CaosLexError *error) { CaosValue val = { CAOS_LEX_ERROR, (intptr_t)error }; return val; }
+CaosValue caos_value_comment (char *comment) { CaosValue val = { CAOS_LEX_COMMENT, (intptr_t)comment }; return val; }
+
+bool caos_value_is_error (CaosValue val) { return val.type == CAOS_LEX_ERROR; }
+bool caos_value_is_comment (CaosValue val) { return val.type == CAOS_LEX_COMMENT; }
+
+CaosLexError* caos_value_to_error (CaosValue val) { return (CaosLexError*)val.value; }
+char* caos_value_to_comment (CaosValue val) { return (char*)val.value; }
+
 bool
 caos_value_equal (CaosValue left, CaosValue right)
 {
@@ -269,12 +280,17 @@ CaosScript* caos_script_from_string (enum CaosLexerVersion version, CaosLexError
   CaosValue *script = NULL;
 
   while (true) {
-    CaosValue val = caos_lexer_lex(&lexer, e);
-    if (caos_value_is_null (val)) {
+    CaosValue val = caos_lexer_lex(&lexer);
+    if (caos_value_is_error (val)) {
       // TODO: What about malloc'd tokens?
       free (script);
+	  *e = caos_value_to_error(val);
       return NULL;
     }
+	if (caos_value_is_comment (val)) {
+	  free (caos_value_to_comment (val));
+	  continue;
+	}
     if (i == m) {
       m = m ? m << 1 : 1;
       script = (CaosValue*) realloc (script, sizeof(CaosValue) * m);

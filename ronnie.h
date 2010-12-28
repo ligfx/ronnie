@@ -66,13 +66,22 @@ typedef enum {
 
 typedef struct CaosLexError {
     CaosLexErrorType type;
-    unsigned int lineno;
-    void *data;
+	void *data;
+	unsigned int location;
+	unsigned short extent;
+    unsigned short lineno;
 } CaosLexError;
 
 RONNIE_API CaosLexer caos_lexer (enum CaosLexerVersion, const char *script);
-RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer, CaosLexError**);
+RONNIE_API CaosValue caos_lexer_lex (CaosLexer *lexer);
 RONNIE_API void caos_lex_error_free (CaosLexError*);
+
+RONNIE_API CaosValue caos_value_comment (char*);
+RONNIE_API bool caos_value_is_comment (CaosValue);
+RONNIE_API char* caos_value_to_comment (CaosValue);
+RONNIE_API CaosValue caos_value_error (CaosLexError*);
+RONNIE_API bool caos_value_is_error (CaosValue);
+RONNIE_API CaosLexError* caos_value_to_error (CaosValue);
 
 // ~ Helpers ~
 RONNIE_API CaosScript* caos_script_from_string (enum CaosLexerVersion, CaosLexError**, const char*);
