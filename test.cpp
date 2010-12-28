@@ -95,6 +95,7 @@ TEST (RuntimeErrors, ExpectedCommand) {
 	EXPECT_EQ (CAOS_EXPECTED_COMMAND, error->type);
 	EXPECT_PRED1 (caos_value_is_symbol, error->token);
 	EXPECT_STREQ ("notacommand", caos_value_to_symbol (error->token));
+	EXPECT_EQ (1, error->token.line);
 }
 
 void c_outs (CaosContext *context)
@@ -109,7 +110,7 @@ TEST (RuntimeErrors, ExpectedExpression) {
 	
 	
 	CaosLexError *lex_error = NULL;
-	CaosScript *script = caos_script_from_string (CAOS_EXODUS, &lex_error, "outs outs");
+	CaosScript *script = caos_script_from_string (CAOS_EXODUS, &lex_error, "outs\n\n outs");
 	ASSERT_FALSE (lex_error);
 	
 	CaosContext *context = caos_context_new (runtime, script);
@@ -122,6 +123,7 @@ TEST (RuntimeErrors, ExpectedExpression) {
 	EXPECT_EQ (CAOS_EXPECTED_EXPRESSION, error->type);
 	EXPECT_PRED1 (caos_value_is_symbol, error->token);
 	EXPECT_STREQ ("outs", caos_value_to_symbol (error->token));
+	EXPECT_EQ (3, error->token.line);
 }
 
 void
@@ -151,4 +153,5 @@ TEST (RuntimeErrors, FailedToFastForward) {
 	
 	EXPECT_EQ (CAOS_FAILED_TO_FAST_FORWARD, error->type);
 	EXPECT_PRED1 (caos_value_is_eoi, error->token);
+	EXPECT_EQ (1, error->token.line);
 }

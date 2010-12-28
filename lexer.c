@@ -375,6 +375,7 @@ CaosValue caos_lexer_lex (CaosLexer *l, CaosLexError **e)
 	while (iswhitespace (*old_p)) ++old_p;
 	val.location = old_p - l->script;
 	val.extent = l->p - old_p;
+	val.line = l->lineno;
 	
 	return val;
 }

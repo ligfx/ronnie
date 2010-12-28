@@ -13,14 +13,14 @@ caos_value_symbol (char *s)
 CaosValue
 caos_value_eoi ()
 {
-  CaosValue val = { CAOS_EOI, 0, 0, 0 };
+  CaosValue val = { CAOS_EOI };
   return val;
 }
 
 CaosValue
 caos_value_null()
 {
-	CaosValue val = { CAOS_NULL, 0, 0, 0 };
+	CaosValue val = { CAOS_NULL };
 	return val;
 }
 
