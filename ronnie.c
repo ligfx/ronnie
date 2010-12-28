@@ -262,7 +262,7 @@ caos_value_equal (CaosValue left, CaosValue right)
 
 // ~ Helpers ~
 
-CaosScript* caos_script_from_string (enum CaosLexerVersion version, CaosLexError **e, char *source) {
+CaosScript* caos_script_from_string (enum CaosLexerVersion version, CaosLexError **e, const char *source) {
   int i, m;
   i = m = 0;
   CaosLexer lexer = caos_lexer (version, source);
