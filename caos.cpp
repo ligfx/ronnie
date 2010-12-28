@@ -109,10 +109,6 @@ caos_stack_peek (CaosContext *context)
 CaosValue
 caos_current_token (CaosContext *context)
 {
-  if (caos_done (context)) {
-    ERROR (CAOS_UNEXPECTED_EOI, caos_value_null());
-    return caos_value_null();
-  }
   return *context->script_handle.position;
 }
 
@@ -148,12 +144,11 @@ caos_done (CaosContext *context)
 
 void caos_advance_to_next_symbol (CaosContext *context)
 {
-  if (caos_done(context)) return;
   CaosValue tok;
   do {
     caos_advance (context);
     tok = caos_current_token (context);
-    if (caos_get_error (context)) return;
+    if (caos_done (context)) return;
   } while (!caos_value_is_symbol (tok));
 }
 
@@ -173,9 +168,7 @@ caos_fast_forward (CaosContext *context, ...)
 
   while (true) {
     CaosValue sym = caos_current_token(context);
-    if (caos_get_error (context)) {
-      // The only error will be on EOI, therefore we can override it
-	  caos_clear_error (context);
+	if (caos_value_is_eoi (sym)) {
 	  ERROR (CAOS_FAILED_TO_FAST_FORWARD, sym);
       return;
     }
@@ -203,7 +196,7 @@ caos_arg_value (CaosContext *context)
   caos_expression_t expr = NULL;
 
   CaosValue token = caos_current_token (context);
-  if (caos_get_error (context)) return ret;
+  if (caos_done (context)) return ret;
 
   if (caos_value_is_symbol (token))
   {
@@ -266,7 +259,8 @@ caos_get_expression (CaosContext *context)
 void
 caos_advance (CaosContext *context)
 {
-  context->script_handle.position++;
+  if (!caos_done (context))
+	  context->script_handle.position++;
 }
 
 void
@@ -274,11 +268,11 @@ caos_tick (CaosContext *context, void *user_data)
 {
   context->user_data = user_data;
   {
-	CaosValue token = caos_current_token(context);
+	CaosValue sym = caos_current_token (context);
     caos_command_t command = caos_get_command (context);
     if (command) command (context);
     else {
-		ERROR (CAOS_EXPECTED_COMMAND,token);
+		ERROR (CAOS_EXPECTED_COMMAND, sym);
 	}
   }
   context->user_data = NULL;

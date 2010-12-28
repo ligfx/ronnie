@@ -150,23 +150,5 @@ TEST (RuntimeErrors, FailedToFastForward) {
 	ASSERT_TRUE (error);  
 	
 	EXPECT_EQ (CAOS_FAILED_TO_FAST_FORWARD, error->type);
-	EXPECT_PRED1 (caos_value_is_null, error->token);
-}
-
-TEST (RuntimeErrors, UnexpectedEOI) {
-	CaosRuntime *runtime = caos_runtime_new();
-	
-	CaosLexError *lex_error = NULL;
-	CaosScript *script = caos_script_from_string (CAOS_EXODUS, &lex_error, "");
-	ASSERT_FALSE (lex_error);
-	
-	CaosContext *context = caos_context_new (runtime, script);
-	
-	caos_tick (context, NULL);
-	CaosError *error = NULL;
-	error = caos_get_error (context);
-	ASSERT_TRUE (error);  
-	
-	EXPECT_EQ (CAOS_UNEXPECTED_EOI, error->type);
-	EXPECT_PRED1 (caos_value_is_null, error->token);
+	EXPECT_PRED1 (caos_value_is_eoi, error->token);
 }
